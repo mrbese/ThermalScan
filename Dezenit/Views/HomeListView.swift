@@ -1,0 +1,225 @@
+import SwiftUI
+import SwiftData
+
+struct HomeListView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Home.updatedAt, order: .reverse) private var homes: [Home]
+    @State private var showingAddHome = false
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                if homes.isEmpty {
+                    emptyState
+                } else {
+                    homeList
+                }
+            }
+            .navigationTitle("Dezenit")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                if !homes.isEmpty {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: { showingAddHome = true }) {
+                            Image(systemName: "plus")
+                                .fontWeight(.semibold)
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showingAddHome) {
+                AddHomeSheet { home in
+                    modelContext.insert(home)
+                }
+            }
+        }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 32) {
+            Spacer()
+
+            VStack(spacing: 16) {
+                Image(systemName: "house.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(Constants.accentColor)
+
+                VStack(spacing: 8) {
+                    Text("Dezenit")
+                        .font(.largeTitle.bold())
+
+                    Text("Your home energy audit,\nright in your pocket")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+            }
+
+            Button(action: { showingAddHome = true }) {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Add Your Home").fontWeight(.semibold)
+                        Text("Start your energy assessment").font(.caption).opacity(0.8)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .opacity(0.7)
+                }
+                .foregroundStyle(.white)
+                .padding()
+                .background(Constants.accentColor, in: RoundedRectangle(cornerRadius: 14))
+            }
+            .padding(.horizontal, 32)
+
+            Spacer()
+        }
+    }
+
+    private var homeList: some View {
+        List {
+            ForEach(homes) { home in
+                NavigationLink {
+                    HomeDashboardView(home: home)
+                } label: {
+                    HomeRowView(home: home)
+                }
+            }
+            .onDelete(perform: deleteHomes)
+        }
+        .listStyle(.insetGrouped)
+    }
+
+    private func deleteHomes(at offsets: IndexSet) {
+        for index in offsets {
+            modelContext.delete(homes[index])
+        }
+    }
+}
+
+// MARK: - Home Row
+
+private struct HomeRowView: View {
+    let home: Home
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(home.name.isEmpty ? "Unnamed Home" : home.name)
+                    .font(.headline)
+                Spacer()
+                if !home.equipment.isEmpty {
+                    let grade = GradingEngine.grade(for: home.equipment)
+                    Text(grade.rawValue)
+                        .font(.headline.bold())
+                        .foregroundStyle(gradeColor(grade))
+                }
+            }
+            HStack(spacing: 12) {
+                Label("\(home.rooms.count) room\(home.rooms.count == 1 ? "" : "s")", systemImage: "square.split.2x2")
+                Label("\(home.equipment.count) equipment", systemImage: "wrench")
+                if home.computedTotalSqFt > 0 {
+                    Label("\(Int(home.computedTotalSqFt)) sq ft", systemImage: "square.dashed")
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func gradeColor(_ grade: EfficiencyGrade) -> Color {
+        switch grade {
+        case .a: return .green
+        case .b: return .blue
+        case .c: return .yellow
+        case .d: return .orange
+        case .f: return .red
+        }
+    }
+}
+
+// MARK: - Add Home Sheet
+
+private struct AddHomeSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var address = ""
+    @State private var yearBuilt: YearRange = .y1990to2005
+    @State private var sqFt = ""
+    @State private var climateZone: ClimateZone = .moderate
+
+    @StateObject private var locationDetector = ClimateZoneDetector()
+
+    let onSave: (Home) -> Void
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Home Info") {
+                    TextField("Name (e.g. My House)", text: $name)
+                    TextField("Address (optional)", text: $address)
+                }
+
+                Section("Details") {
+                    Picker("Year Built", selection: $yearBuilt) {
+                        ForEach(YearRange.allCases) { yr in
+                            Text(yr.rawValue).tag(yr)
+                        }
+                    }
+
+                    HStack {
+                        Text("Total Sq Ft")
+                        Spacer()
+                        TextField("optional", text: $sqFt)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 80)
+                    }
+
+                    Picker("Climate Zone", selection: $climateZone) {
+                        ForEach(ClimateZone.allCases) { zone in
+                            VStack(alignment: .leading) {
+                                Text(zone.rawValue)
+                                Text(zone.description)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .tag(zone)
+                        }
+                    }
+                    .pickerStyle(.navigationLink)
+                }
+            }
+            .navigationTitle("Add Home")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        let home = Home(
+                            name: name,
+                            address: address.isEmpty ? nil : address,
+                            yearBuilt: yearBuilt,
+                            totalSqFt: Double(sqFt),
+                            climateZone: climateZone
+                        )
+                        onSave(home)
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                    .disabled(name.isEmpty)
+                }
+            }
+            .onAppear {
+                locationDetector.detectClimateZone { zone in
+                    if let zone { climateZone = zone }
+                }
+            }
+        }
+    }
+}
