@@ -1,18 +1,42 @@
-# ThermalScan
+# Dezenit
 
-**Open-source iOS tool for quick residential HVAC load estimation using Apple's RoomPlan spatial computing.**
+**Open-source iOS home energy assessment tool. Scan rooms with LiDAR, photograph equipment for OCR efficiency analysis, get prioritized upgrade recommendations with payback periods and battery synergy insights. Built on ACCA Manual J and ASHRAE standards.**
 
-Scan a room in under 60 seconds. Get BTU requirements, recommended HVAC tonnage, and actionable energy efficiency tips — all calculated on-device with no network calls.
+[dezenit.com](https://dezenit.com)
 
 ---
 
-## How It Works
+## What It Does
 
-1. **Scan** — Walk your iPhone around a room. Apple's RoomPlan API uses LiDAR to detect floor area in real time. No LiDAR? Enter square footage manually.
-2. **Configure** — Tag windows (count, direction, size), set ceiling height, climate zone, and insulation quality.
-3. **Calculate** — The app runs ACCA Manual J simplified load calculations locally and shows your BTU requirement, tonnage, and a breakdown.
-4. **Review** — Get 3–5 energy efficiency recommendations tailored to your specific inputs.
-5. **Save & Share** — Results are persisted with SwiftData. Generate a plain-text summary to share with an HVAC contractor.
+Dezenit turns your iPhone into a residential energy auditor. Walk through your home, scan each room with LiDAR, photograph your HVAC equipment labels, and get a comprehensive efficiency report with prioritized upgrades ranked by return on investment.
+
+### Room Scanning
+- Apple RoomPlan API detects floor area via LiDAR
+- Configure windows (count, direction, size), ceiling height, insulation quality
+- ACCA Manual J simplified BTU load calculation
+- Manual input fallback for non-LiDAR devices
+
+### Equipment Assessment
+- Photograph equipment rating plates (AC units, furnaces, water heaters, windows)
+- On-device OCR extracts model numbers and efficiency ratings via Apple Vision
+- Age-based efficiency estimation when labels are unreadable
+- Compares current efficiency against code minimums and best-in-class
+
+### Home Energy Report
+- Overall efficiency grade (A through F)
+- Estimated annual energy costs
+- Prioritized upgrade list sorted by payback period
+- Battery synergy analysis: how much additional export capacity efficiency upgrades unlock for home battery systems (Pila Energy, Tesla Powerwall, Base Power, Enphase)
+
+---
+
+## The Battery Synergy Thesis
+
+An inefficient building envelope directly cannibalizes the value of home battery systems. A poorly insulated home draws 5-6 kW on a summer afternoon, leaving a battery inverter exporting barely half its rated output during peak grid events when electricity prices spike to $2,000-$5,000/MWh.
+
+Dezenit quantifies this: for each home, it calculates how much additional battery export capacity passive efficiency upgrades would unlock. Upgrading attic insulation to R-49 and sealing ducts to <4% leakage can liberate 1.5-2 kW of additional export capacity from the same battery hardware, translating to 30-40% more grid revenue with zero additional battery cost.
+
+This insight is based on ASHRAE standards, ACCA Manual J methodology, and field audit data from LADWP Commercial Lighting Incentive Program (CLIP) assessments.
 
 ---
 
@@ -20,113 +44,95 @@ Scan a room in under 60 seconds. Get BTU requirements, recommended HVAC tonnage,
 
 Based on ACCA Manual J simplified method.
 
-```
-Base BTU = sq_ft × ceiling_height_factor × climate_factor
+| Parameter | Values |
+|---|---|
+| Climate factors | Hot: 30 BTU/sq ft, Moderate: 25, Cold: 35 |
+| Ceiling height | 8ft: 1.0x, 9ft: 1.12x, 10ft: 1.25x, 12ft: 1.5x |
+| Window solar gain | South: 150 BTU/sq ft, West: 120, East: 100, North: 40 |
+| Insulation adjustment | Poor: +30%, Average: baseline, Good: -15% |
+| Safety factor | 1.10 (10% ACCA standard) |
 
-Ceiling height factors:
-  8 ft  = 1.00
-  9 ft  = 1.12
-  10 ft = 1.25
-  12 ft = 1.50
+References: [ACCA Manual J](https://www.acca.org/bookstore/product/manual-j-residential-load-calculation-8th-edition), ASHRAE Handbook of Fundamentals, DOE 2023 efficiency standards.
 
-Climate factors (BTU/sq ft):
-  Hot      = 30  (Desert Southwest, Gulf Coast, Florida)
-  Moderate = 25  (Mid-Atlantic, Pacific Coast, Midwest)
-  Cold     = 35  (Northern US, Mountain West, New England)
+---
 
-Window solar heat gain (BTU/sq ft of glass):
-  South-facing = 150  (peak summer gain)
-  West-facing  = 120
-  East-facing  = 100
-  North-facing =  40
+## Equipment Efficiency Benchmarks
 
-Window sizes:
-  Small  = 10 sq ft
-  Medium = 20 sq ft
-  Large  = 35 sq ft
-
-Insulation multipliers:
-  Poor    = 1.30  (+30% load penalty)
-  Average = 1.00  (baseline)
-  Good    = 0.85  (-15% load credit)
-
-Safety factor = 1.10 (10% buffer — ACCA industry standard)
-
-Final BTU = (Base BTU + Window Heat Gain) × Insulation Multiplier × 1.10
-HVAC Tonnage = Final BTU / 12,000
-```
-
-References: [ACCA Manual J](https://www.acca.org/bookstore/product/manual-j-residential-load-calculation-8th-edition), ASHRAE Handbook of Fundamentals.
+| Equipment | 20+ yr old | Current Code Min | Best in Class |
+|---|---|---|---|
+| Central AC | SEER 9 | SEER2 15.2 | SEER 24 |
+| Heat Pump | SEER 9 / HSPF 6.5 | SEER2 15.2 / HSPF2 7.8 | SEER 25+ / HSPF 13+ |
+| Furnace | 65% AFUE | 80-90% AFUE | 98.5% AFUE |
+| Water Heater (tank) | UEF 0.50 | UEF 0.64 | HPWH UEF 3.5+ |
+| Windows (single pane) | U-factor 1.1 | U-factor 0.30 | U-factor 0.15 |
 
 ---
 
 ## Requirements
 
-- iPhone 12 Pro or later (LiDAR required for room scanning)
-- All iPhone 13 Pro, 14 Pro, 15 models support scanning
+- iPhone 12 Pro or later (LiDAR for room scanning)
 - Manual input mode works on all iPhones
 - iOS 17.0+
-- No external dependencies — Apple frameworks only (RoomPlan, ARKit, SwiftData, CoreLocation)
+- No external dependencies. Apple frameworks only (RoomPlan, ARKit, Vision, SwiftData, CoreLocation, AVFoundation)
+- No network calls. Everything runs on-device.
 
 ---
 
-## Energy Efficiency Recommendations
+## Tech Stack
 
-ThermalScan generates context-aware recommendations based on your specific scan inputs, not generic advice:
-
-| Condition Detected | Recommendation | Estimated Impact |
-|---|---|---|
-| South/West-facing windows + Poor/Average insulation | Low-e window film installation | 25-30% reduction in solar heat gain through glazing |
-| Poor insulation quality | Upgrade attic insulation to R-49 | 1.0-1.5 kW peak cooling load reduction |
-| Any scan (universal) | Aerosol duct sealing to less than 4% leakage | Recovers 15-20% of lost conditioned air |
-| Ceiling height over 10 ft | Ceiling fan installation for destratification | Reduces stratification losses, improves HVAC efficiency |
-| Window area over 30% of floor area | Thermal curtains on largest windows | Estimated 10-15% reduction in window heat gain |
-
-These recommendations are grounded in ASHRAE standards, ACCA Manual J methodology, and real-world energy audit data from LADWP Commercial Lighting Incentive Program (CLIP) assessments.
-
-### Why This Matters for Distributed Energy
-
-An inefficient building envelope directly cannibalizes the value of home battery systems. A standard, poorly insulated home draws 5-6 kW on a summer afternoon, leaving a home battery exporting barely half its rated output during peak grid events. Reducing parasitic home loads by even 1.5-2 kW through passive efficiency upgrades means 30-40% more exportable capacity from the same hardware, with zero additional battery cost.
-
----
-
-## Screenshots
-
-> _Coming soon_
+Swift, SwiftUI, SwiftData, RoomPlan, ARKit, AVFoundation, Vision (OCR), CoreLocation, PDFKit
 
 ---
 
 ## Project Structure
 
 ```
-ThermalScan/
-  ThermalScan/
+Dezenit/
+  Dezenit/
     App/
-      ThermalScanApp.swift        Entry point, SwiftData container
+      DezenitApp.swift
     Models/
-      Room.swift                  SwiftData model + CeilingHeightOption enum
-      WindowInfo.swift            Window direction + size model
-      ClimateZone.swift           Hot / Moderate / Cold
-      InsulationQuality.swift     Poor / Average / Good
+      Home.swift                    SwiftData model, contains rooms + equipment
+      Room.swift                    Room model, linked to Home
+      Equipment.swift               Equipment model with efficiency data
+      EquipmentType.swift           Enum: AC, heat pump, furnace, water heater, etc.
+      AgeRange.swift                Enum: 0-5, 5-10, 10-15, 15-20, 20+ years
+      WindowInfo.swift              Window direction + size
+      ClimateZone.swift             Hot / Moderate / Cold
+      InsulationQuality.swift       Poor / Average / Good
     Views/
-      HomeView.swift              Room list + entry points
-      ScanView.swift              RoomPlan capture flow
-      DetailsView.swift           Room configuration form
-      ResultsView.swift           BTU results + recommendations
+      HomeListView.swift            List of homes
+      HomeDashboardView.swift       Single home overview
+      RoomScan/
+        ScanView.swift              RoomPlan capture flow
+        DetailsView.swift           Room configuration form
+        ResultsView.swift           BTU results + recommendations
+      EquipmentScan/
+        EquipmentCameraView.swift   Camera + OCR capture
+        EquipmentDetailsView.swift  Manual/OCR entry form
+        EquipmentResultView.swift   Single equipment analysis
+      Report/
+        HomeReportView.swift        Full home assessment report
+        ReportPDFGenerator.swift    PDF export
     Services/
-      EnergyCalculator.swift      BTU calculation engine
-      RecommendationEngine.swift  Context-aware efficiency tips
-      RoomCaptureService.swift    RoomPlan + ARKit wrapper
+      EnergyCalculator.swift        BTU calculation engine
+      RecommendationEngine.swift    Context-aware efficiency tips
+      RoomCaptureService.swift      RoomPlan + ARKit wrapper
+      EfficiencyDatabase.swift      Equipment lookup tables
+      GradingEngine.swift           A-F weighted efficiency grading
+      OCRService.swift              Apple Vision text recognition
     Utils/
-      Constants.swift             Accent color + all calculation constants
+      Constants.swift               Colors, calculation constants, rates
 ```
 
 ---
 
 ## License
 
-MIT License — free to use, modify, and distribute.
+MIT License
 
 ---
 
-Built by [Omer Bese](https://omerbese.com) | Energy Systems Engineer | Columbia University MS Sustainability Management
+Built by [Omer Bese](https://linkedin.com/in/omerbese) | Energy Systems Engineer | Columbia University MS Sustainability Management
+
+Methodology informed by professional energy audit experience with the LADWP CLIP program, ASHRAE standards, and DOE residential efficiency guidelines.
