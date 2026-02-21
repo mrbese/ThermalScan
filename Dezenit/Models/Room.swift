@@ -14,6 +14,7 @@ final class Room {
     var calculatedTonnage: Double
     var createdAt: Date
     var scanWasUsed: Bool
+    var home: Home?
 
     init(
         name: String = "",

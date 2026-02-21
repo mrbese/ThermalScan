@@ -9,6 +9,8 @@ struct ScanView: View {
     @State private var showingDetails = false
     @State private var scanStarted = false
 
+    var home: Home? = nil
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -37,7 +39,7 @@ struct ScanView: View {
                 }
             }
             .sheet(isPresented: $showingDetails) {
-                DetailsView(squareFootage: detectedSqFt, scannedWindows: detectedWindows)
+                DetailsView(squareFootage: detectedSqFt, scannedWindows: detectedWindows, home: home)
             }
         }
     }

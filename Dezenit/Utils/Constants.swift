@@ -1,7 +1,8 @@
 import SwiftUI
 
 enum Constants {
-    static let accentColor = Color(red: 0.051, green: 0.451, blue: 0.467) // #0D7377
+    static let accentColor = Color(red: 0.910, green: 0.447, blue: 0.047) // #E8720C warm amber
+    static let secondaryColor = Color(red: 0.102, green: 0.102, blue: 0.180) // #1A1A2E deep charcoal
     static let safetyFactor: Double = 1.10
     static let btuPerTon: Double = 12_000
 
@@ -36,4 +37,8 @@ enum Constants {
         static let medium: Double = 20
         static let large: Double = 35
     }
+
+    // Default energy rates
+    static let defaultElectricityRate: Double = 0.16 // $/kWh
+    static let defaultGasRate: Double = 1.20 // $/therm
 }

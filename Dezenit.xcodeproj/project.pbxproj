@@ -1,0 +1,495 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E4025A009CFF658CA4B4A452 /* AgeRange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21BB96967D104FC11029B179 /* AgeRange.swift */; };
+		15F9380410D5373398F8FA1A /* ClimateZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5ABD272ED616F79E16A552D /* ClimateZone.swift */; };
+		06F3EA1E59EB6218E60764E1 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538574DE069F0F57C00DF2B7 /* Constants.swift */; };
+		9EA4F15A623E5A4CE66B4A7B /* DetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0D4D9EF29AFFD1BEB92696 /* DetailsView.swift */; };
+		BC70286DD2F99455834484C4 /* DezenitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D74D185C82E3261299F39B /* DezenitApp.swift */; };
+		04A5AFE0F86F107C2A1B0952 /* EfficiencyDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3068B911A82DE30DB15358 /* EfficiencyDatabase.swift */; };
+		B6C2972B7391230FA46BABBC /* EnergyCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC37822444A610D43545C929 /* EnergyCalculator.swift */; };
+		25420D318A12DD96AE1E4111 /* Equipment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30AE5019C4C71130E3E5BB60 /* Equipment.swift */; };
+		156721E5C91380295DE2093E /* EquipmentCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F8DD6994632A3F57276775 /* EquipmentCameraView.swift */; };
+		D5B2AD3CE5AC6214154EE6C7 /* EquipmentDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B8D9F7CE2C912DF24DD3A32 /* EquipmentDetailsView.swift */; };
+		1B7410C404B2BB1E83BE9296 /* EquipmentResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A5D09C34D23C47AD06855B /* EquipmentResultView.swift */; };
+		42EFF3625E167F638C6CCE6A /* EquipmentType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FA192441F3FB94FB68D99F /* EquipmentType.swift */; };
+		C323DF3651A9285DA3627EF6 /* GradingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1953403A4EAFB8040C0D85 /* GradingEngine.swift */; };
+		806A2B92D3FB7F6A23ECD2A8 /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD61FAFE81596B14157980E /* Home.swift */; };
+		A433AA767373BCE30539FB59 /* HomeDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F6C2237660E937555657D3 /* HomeDashboardView.swift */; };
+		7606CC1749010B46B99D17D4 /* HomeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ABFABD0FB529862C9C7E126 /* HomeListView.swift */; };
+		C165121F0D39BE8C90098111 /* HomeReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6600F2D44B51F6A31862B9CA /* HomeReportView.swift */; };
+		58C8B2E2FE6104B7C63B88C0 /* InsulationQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520DF73321E9D780A539CF4B /* InsulationQuality.swift */; };
+		4DB3AB8042C542DD4A7EAC28 /* OCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BC58B6DD0C83F19466EB9FD /* OCRService.swift */; };
+		BB5FCD64E44E997499226530 /* RecommendationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC24A901CAE93DBBD54D9BE /* RecommendationEngine.swift */; };
+		027707383DF1564F1E5D0E2D /* ReportPDFGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 534162E70EEFA36E4F41B432 /* ReportPDFGenerator.swift */; };
+		4FCF91EACA591894E8C36675 /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EE759848310E03ACCDB403 /* ResultsView.swift */; };
+		904FD64E559C097CAB49D67F /* Room.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A15F75FE5655F008637043A /* Room.swift */; };
+		7718D4B8B6303B27BDF9E79E /* RoomCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CDC592D83F169C46EAF5C7 /* RoomCaptureService.swift */; };
+		A67A5054EB4F62DF376ADB7E /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03F7657B7D1F469D8F6554C1 /* ScanView.swift */; };
+		D10C78969BAD8C84AB9BA727 /* WindowInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0860CF48A2239E1C9C8CED4B /* WindowInfo.swift */; };
+		DFF277B11EF1FB497592C961 /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8B738961A1AB423390AF30F /* ARKit.framework */; };
+		5EE8AF2DDBC5A79DD042D53F /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD6CBD24C7158E374A454127 /* AVFoundation.framework */; };
+		20D52390D16E013DA4807032 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 35BAC3503EE8F2E450AC6B7B /* CoreLocation.framework */; };
+		31F874A16E83C471B5C8C185 /* PDFKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5C9FAE300761909DEB55B8B0 /* PDFKit.framework */; };
+		7F588EDE8442B68CCB873A04 /* RoomPlan.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F27EF9619E2DF2BFFF17585 /* RoomPlan.framework */; };
+		049CE24D97483D4021270191 /* Vision.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F98B99473DE65D4EEFE74CA5 /* Vision.framework */; };
+		04A7814E4EEC70DE7D6C41B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61854AB7C74C48BB5873ED48 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		F870A1B38BC0971364A338D5 /* Dezenit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dezenit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		21BB96967D104FC11029B179 /* AgeRange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgeRange.swift; sourceTree = "<group>"; };
+		B5ABD272ED616F79E16A552D /* ClimateZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClimateZone.swift; sourceTree = "<group>"; };
+		538574DE069F0F57C00DF2B7 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		AE0D4D9EF29AFFD1BEB92696 /* DetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsView.swift; sourceTree = "<group>"; };
+		20D74D185C82E3261299F39B /* DezenitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DezenitApp.swift; sourceTree = "<group>"; };
+		1E3068B911A82DE30DB15358 /* EfficiencyDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EfficiencyDatabase.swift; sourceTree = "<group>"; };
+		CC37822444A610D43545C929 /* EnergyCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnergyCalculator.swift; sourceTree = "<group>"; };
+		30AE5019C4C71130E3E5BB60 /* Equipment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Equipment.swift; sourceTree = "<group>"; };
+		30F8DD6994632A3F57276775 /* EquipmentCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquipmentCameraView.swift; sourceTree = "<group>"; };
+		0B8D9F7CE2C912DF24DD3A32 /* EquipmentDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquipmentDetailsView.swift; sourceTree = "<group>"; };
+		D0A5D09C34D23C47AD06855B /* EquipmentResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquipmentResultView.swift; sourceTree = "<group>"; };
+		A6FA192441F3FB94FB68D99F /* EquipmentType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquipmentType.swift; sourceTree = "<group>"; };
+		6A1953403A4EAFB8040C0D85 /* GradingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradingEngine.swift; sourceTree = "<group>"; };
+		EAD61FAFE81596B14157980E /* Home.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
+		84F6C2237660E937555657D3 /* HomeDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDashboardView.swift; sourceTree = "<group>"; };
+		6ABFABD0FB529862C9C7E126 /* HomeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeListView.swift; sourceTree = "<group>"; };
+		6600F2D44B51F6A31862B9CA /* HomeReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeReportView.swift; sourceTree = "<group>"; };
+		520DF73321E9D780A539CF4B /* InsulationQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsulationQuality.swift; sourceTree = "<group>"; };
+		0BC58B6DD0C83F19466EB9FD /* OCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRService.swift; sourceTree = "<group>"; };
+		4BC24A901CAE93DBBD54D9BE /* RecommendationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationEngine.swift; sourceTree = "<group>"; };
+		534162E70EEFA36E4F41B432 /* ReportPDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportPDFGenerator.swift; sourceTree = "<group>"; };
+		00EE759848310E03ACCDB403 /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
+		2A15F75FE5655F008637043A /* Room.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Room.swift; sourceTree = "<group>"; };
+		B0CDC592D83F169C46EAF5C7 /* RoomCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomCaptureService.swift; sourceTree = "<group>"; };
+		03F7657B7D1F469D8F6554C1 /* ScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanView.swift; sourceTree = "<group>"; };
+		0860CF48A2239E1C9C8CED4B /* WindowInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowInfo.swift; sourceTree = "<group>"; };
+		61854AB7C74C48BB5873ED48 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D8B738961A1AB423390AF30F /* ARKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ARKit.framework; path = System/Library/Frameworks/ARKit.framework; sourceTree = SDKROOT; };
+		AD6CBD24C7158E374A454127 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		35BAC3503EE8F2E450AC6B7B /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		5C9FAE300761909DEB55B8B0 /* PDFKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PDFKit.framework; path = System/Library/Frameworks/PDFKit.framework; sourceTree = SDKROOT; };
+		3F27EF9619E2DF2BFFF17585 /* RoomPlan.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RoomPlan.framework; path = System/Library/Frameworks/RoomPlan.framework; sourceTree = SDKROOT; };
+		F98B99473DE65D4EEFE74CA5 /* Vision.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Vision.framework; path = System/Library/Frameworks/Vision.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0D0D0EC4F4655E6EC05F4644 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DFF277B11EF1FB497592C961 /* ARKit.framework in Frameworks */,
+				5EE8AF2DDBC5A79DD042D53F /* AVFoundation.framework in Frameworks */,
+				20D52390D16E013DA4807032 /* CoreLocation.framework in Frameworks */,
+				31F874A16E83C471B5C8C185 /* PDFKit.framework in Frameworks */,
+				7F588EDE8442B68CCB873A04 /* RoomPlan.framework in Frameworks */,
+				049CE24D97483D4021270191 /* Vision.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5DE11722D4C39F9BD281F262 /* Dezenit */ = {
+			isa = PBXGroup;
+			children = (
+				AB8D408CB1881C666AAC0831 /* App */,
+				C9E04F99D8E7C9D4D391AEF8 /* Models */,
+				9F58BDF7D4F04F6C4DC3CB6C /* Views */,
+				9C035E7454E6255EF4EA445C /* Services */,
+				1FE639928B56002A4EF73D9B /* Utils */,
+				61854AB7C74C48BB5873ED48 /* Assets.xcassets */,
+				D8BD5DD42310CB1693158D7B /* Frameworks */,
+				30772F61AC9BDC8631745269 /* Products */,
+			);
+			path = Dezenit;
+			sourceTree = "<group>";
+		};
+		AB8D408CB1881C666AAC0831 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				20D74D185C82E3261299F39B /* DezenitApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C9E04F99D8E7C9D4D391AEF8 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				21BB96967D104FC11029B179 /* AgeRange.swift */,
+				B5ABD272ED616F79E16A552D /* ClimateZone.swift */,
+				30AE5019C4C71130E3E5BB60 /* Equipment.swift */,
+				A6FA192441F3FB94FB68D99F /* EquipmentType.swift */,
+				EAD61FAFE81596B14157980E /* Home.swift */,
+				520DF73321E9D780A539CF4B /* InsulationQuality.swift */,
+				2A15F75FE5655F008637043A /* Room.swift */,
+				0860CF48A2239E1C9C8CED4B /* WindowInfo.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		9F58BDF7D4F04F6C4DC3CB6C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				15722AA64BF327D34459BE72 /* RoomScan */,
+				18E50222503637B73118C92E /* EquipmentScan */,
+				5ABA4F45E97506E0875A62BD /* Report */,
+				84F6C2237660E937555657D3 /* HomeDashboardView.swift */,
+				6ABFABD0FB529862C9C7E126 /* HomeListView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		15722AA64BF327D34459BE72 /* RoomScan */ = {
+			isa = PBXGroup;
+			children = (
+				AE0D4D9EF29AFFD1BEB92696 /* DetailsView.swift */,
+				00EE759848310E03ACCDB403 /* ResultsView.swift */,
+				03F7657B7D1F469D8F6554C1 /* ScanView.swift */,
+			);
+			path = RoomScan;
+			sourceTree = "<group>";
+		};
+		18E50222503637B73118C92E /* EquipmentScan */ = {
+			isa = PBXGroup;
+			children = (
+				30F8DD6994632A3F57276775 /* EquipmentCameraView.swift */,
+				0B8D9F7CE2C912DF24DD3A32 /* EquipmentDetailsView.swift */,
+				D0A5D09C34D23C47AD06855B /* EquipmentResultView.swift */,
+			);
+			path = EquipmentScan;
+			sourceTree = "<group>";
+		};
+		5ABA4F45E97506E0875A62BD /* Report */ = {
+			isa = PBXGroup;
+			children = (
+				6600F2D44B51F6A31862B9CA /* HomeReportView.swift */,
+				534162E70EEFA36E4F41B432 /* ReportPDFGenerator.swift */,
+			);
+			path = Report;
+			sourceTree = "<group>";
+		};
+		9C035E7454E6255EF4EA445C /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				1E3068B911A82DE30DB15358 /* EfficiencyDatabase.swift */,
+				CC37822444A610D43545C929 /* EnergyCalculator.swift */,
+				6A1953403A4EAFB8040C0D85 /* GradingEngine.swift */,
+				0BC58B6DD0C83F19466EB9FD /* OCRService.swift */,
+				4BC24A901CAE93DBBD54D9BE /* RecommendationEngine.swift */,
+				B0CDC592D83F169C46EAF5C7 /* RoomCaptureService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		1FE639928B56002A4EF73D9B /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				538574DE069F0F57C00DF2B7 /* Constants.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		D8BD5DD42310CB1693158D7B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D8B738961A1AB423390AF30F /* ARKit.framework */,
+				AD6CBD24C7158E374A454127 /* AVFoundation.framework */,
+				35BAC3503EE8F2E450AC6B7B /* CoreLocation.framework */,
+				5C9FAE300761909DEB55B8B0 /* PDFKit.framework */,
+				3F27EF9619E2DF2BFFF17585 /* RoomPlan.framework */,
+				F98B99473DE65D4EEFE74CA5 /* Vision.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		30772F61AC9BDC8631745269 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F870A1B38BC0971364A338D5 /* Dezenit.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		16ACC8420320434AAE78BFDB /* Dezenit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F707ED8CFBC457F7F618ECA6 /* Build configuration list for PBXNativeTarget "Dezenit" */;
+			buildPhases = (
+				E7209FB05162B7572F88D05E /* Sources */,
+				0D0D0EC4F4655E6EC05F4644 /* Frameworks */,
+				66F8606E9F0A136E2228EBCB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Dezenit;
+			productName = Dezenit;
+			productReference = F870A1B38BC0971364A338D5 /* Dezenit.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		74A2B51B7A2431C45FE8B34D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					16ACC8420320434AAE78BFDB = {
+						CreatedOnToolsVersion = 16.2;
+					};
+				};
+			};
+			buildConfigurationList = 9D908D8792E5642B2623649E /* Build configuration list for PBXProject "Dezenit" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 5DE11722D4C39F9BD281F262 /* Dezenit */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				16ACC8420320434AAE78BFDB /* Dezenit */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		66F8606E9F0A136E2228EBCB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				04A7814E4EEC70DE7D6C41B1 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E7209FB05162B7572F88D05E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E4025A009CFF658CA4B4A452 /* AgeRange.swift in Sources */,
+				15F9380410D5373398F8FA1A /* ClimateZone.swift in Sources */,
+				06F3EA1E59EB6218E60764E1 /* Constants.swift in Sources */,
+				9EA4F15A623E5A4CE66B4A7B /* DetailsView.swift in Sources */,
+				BC70286DD2F99455834484C4 /* DezenitApp.swift in Sources */,
+				04A5AFE0F86F107C2A1B0952 /* EfficiencyDatabase.swift in Sources */,
+				B6C2972B7391230FA46BABBC /* EnergyCalculator.swift in Sources */,
+				25420D318A12DD96AE1E4111 /* Equipment.swift in Sources */,
+				156721E5C91380295DE2093E /* EquipmentCameraView.swift in Sources */,
+				D5B2AD3CE5AC6214154EE6C7 /* EquipmentDetailsView.swift in Sources */,
+				1B7410C404B2BB1E83BE9296 /* EquipmentResultView.swift in Sources */,
+				42EFF3625E167F638C6CCE6A /* EquipmentType.swift in Sources */,
+				C323DF3651A9285DA3627EF6 /* GradingEngine.swift in Sources */,
+				806A2B92D3FB7F6A23ECD2A8 /* Home.swift in Sources */,
+				A433AA767373BCE30539FB59 /* HomeDashboardView.swift in Sources */,
+				7606CC1749010B46B99D17D4 /* HomeListView.swift in Sources */,
+				C165121F0D39BE8C90098111 /* HomeReportView.swift in Sources */,
+				58C8B2E2FE6104B7C63B88C0 /* InsulationQuality.swift in Sources */,
+				4DB3AB8042C542DD4A7EAC28 /* OCRService.swift in Sources */,
+				BB5FCD64E44E997499226530 /* RecommendationEngine.swift in Sources */,
+				027707383DF1564F1E5D0E2D /* ReportPDFGenerator.swift in Sources */,
+				4FCF91EACA591894E8C36675 /* ResultsView.swift in Sources */,
+				904FD64E559C097CAB49D67F /* Room.swift in Sources */,
+				7718D4B8B6303B27BDF9E79E /* RoomCaptureService.swift in Sources */,
+				A67A5054EB4F62DF376ADB7E /* ScanView.swift in Sources */,
+				D10C78969BAD8C84AB9BA727 /* WindowInfo.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		683105B965893FCC643C4ECF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCAT_COMPILER_APPICON_NAME = AppIcon;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3V7T9UPYM9;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Dezenit uses your camera to scan rooms with LiDAR and photograph equipment labels for OCR.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your approximate location is used to suggest a climate zone for energy calculations.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dezenit.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4DC7B479A29173674AFD7BAC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCAT_COMPILER_APPICON_NAME = AppIcon;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3V7T9UPYM9;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Dezenit uses your camera to scan rooms with LiDAR and photograph equipment labels for OCR.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your approximate location is used to suggest a climate zone for energy calculations.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dezenit.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B74382A4D110BEFC1DEB55E4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_DECL = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F901A40D62D95EAB754CE15B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_DECL = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9D908D8792E5642B2623649E /* Build configuration list for PBXProject "Dezenit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B74382A4D110BEFC1DEB55E4 /* Debug */,
+				F901A40D62D95EAB754CE15B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F707ED8CFBC457F7F618ECA6 /* Build configuration list for PBXNativeTarget "Dezenit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				683105B965893FCC643C4ECF /* Debug */,
+				4DC7B479A29173674AFD7BAC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 74A2B51B7A2431C45FE8B34D /* Project object */;
+}

@@ -9,6 +9,7 @@ struct DetailsView: View {
     // Input from scan (nil = manual entry)
     let scannedSqFt: Double?
     let windowsFromScan: Bool   // true when windows were auto-populated
+    var home: Home? = nil
 
     // Form state
     @State private var roomName: String = ""
@@ -22,9 +23,10 @@ struct DetailsView: View {
 
     @StateObject private var locationDetector = ClimateZoneDetector()
 
-    init(squareFootage: Double?, scannedWindows: [WindowInfo] = []) {
+    init(squareFootage: Double?, scannedWindows: [WindowInfo] = [], home: Home? = nil) {
         self.scannedSqFt = squareFootage
         self.windowsFromScan = !scannedWindows.isEmpty
+        self.home = home
         if let sqFt = squareFootage {
             _squareFootage = State(initialValue: "\(Int(sqFt))")
         }
@@ -192,6 +194,10 @@ struct DetailsView: View {
             scanWasUsed: scannedSqFt != nil
         )
 
+        if let home {
+            room.home = home
+            home.updatedAt = Date()
+        }
         modelContext.insert(room)
         savedRoom = room
         showingResults = true
