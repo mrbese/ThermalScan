@@ -195,10 +195,12 @@ struct BillUploadView: View {
     private func captureAndParse() {
         camera.capturePhoto { image in
             guard let image else {
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
                 errorMessage = "Failed to capture photo. Please try again."
                 showError = true
                 return
             }
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             capturedImage = image
             isProcessing = true
             Task {

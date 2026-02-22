@@ -55,8 +55,10 @@ struct EquipmentCameraView: View {
                     Button(action: {
                         camera.capturePhoto { image in
                             if let image {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                                 onCapture(image)
                             } else {
+                                UINotificationFeedbackGenerator().notificationOccurred(.error)
                                 errorMessage = "Failed to capture photo. Please try again."
                                 showError = true
                             }

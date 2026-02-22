@@ -134,16 +134,19 @@ struct ApplianceScanView: View {
     private func captureAndClassify() {
         camera.capturePhoto { image in
             guard let image else {
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
                 errorMessage = "Failed to capture photo. Please try again."
                 showError = true
                 return
             }
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             capturedImage = image
             isClassifying = true
 
             Task {
                 let results = await ApplianceClassificationService.classify(image: image, topK: 3)
                 if results.isEmpty {
+                    UINotificationFeedbackGenerator().notificationOccurred(.error)
                     errorMessage = "Could not identify this appliance. Try a different angle or add it manually."
                     showError = true
                     isClassifying = false

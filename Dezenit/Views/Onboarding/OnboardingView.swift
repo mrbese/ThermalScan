@@ -3,6 +3,7 @@ import SwiftUI
 struct OnboardingView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     @State private var currentPage = 0
+    @State private var didGetStarted = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,9 +21,9 @@ struct OnboardingView: View {
                     tag: 1
                 )
                 page(
-                    icon: "lock.shield.fill",
-                    title: "100% Offline",
-                    subtitle: "Your data never leaves your device. No account required, no cloud uploads. Everything stays on your iPhone.",
+                    icon: "icloud.fill",
+                    title: "Your Data, Your Devices",
+                    subtitle: "Syncs securely via iCloud across all your Apple devices. No third-party servers — your data stays in your Apple account.",
                     tag: 2
                 )
             }
@@ -30,6 +31,7 @@ struct OnboardingView: View {
 
             if currentPage == 2 {
                 Button {
+                    didGetStarted = true
                     hasSeenOnboarding = true
                 } label: {
                     Text("Get Started")
@@ -57,6 +59,7 @@ struct OnboardingView: View {
             }
         }
         .background(Constants.secondaryColor.ignoresSafeArea())
+        .sensoryFeedback(.success, trigger: didGetStarted)
     }
 
     private func page(icon: String, title: String, subtitle: String, tag: Int) -> some View {
