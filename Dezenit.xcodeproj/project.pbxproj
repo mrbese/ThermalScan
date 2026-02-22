@@ -60,6 +60,9 @@
 		F1E0D9C8B7A6F5E4D3C2B1B1 /* EnvelopeAssessmentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E2F3 /* EnvelopeAssessmentView.swift */; };
 		F1E0D9C8B7A6F5E4D3C2B1B2 /* EnergyProfileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E2F4 /* EnergyProfileService.swift */; };
 		F1E0D9C8B7A6F5E4D3C2B1B3 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E2F5 /* OnboardingView.swift */; };
+		F1E0D9C8B7A6F5E4D3C2B1B4 /* RebateDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E2F6 /* RebateDatabase.swift */; };
+		F1E0D9C8B7A6F5E4D3C2B1B5 /* StateDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E2F7 /* StateDetectionService.swift */; };
+		F1E0D9C8B7A6F5E4D3C2B1B6 /* RebateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E2F8 /* RebateService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -117,6 +120,10 @@
 		A1B2C3D4E5F6A7B8C9D0E2F3 /* EnvelopeAssessmentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvelopeAssessmentView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6A7B8C9D0E2F4 /* EnergyProfileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnergyProfileService.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6A7B8C9D0E2F5 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E2F6 /* RebateDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RebateDatabase.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E2F7 /* StateDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StateDetectionService.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E2F8 /* RebateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RebateService.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E2F9 /* Dezenit.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Dezenit.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -231,6 +238,7 @@
 		5DE11722D4C39F9BD281F262 /* Dezenit */ = {
 			isa = PBXGroup;
 			children = (
+				A1B2C3D4E5F6A7B8C9D0E2F9 /* Dezenit.entitlements */,
 				AB8D408CB1881C666AAC0831 /* App */,
 				C9E04F99D8E7C9D4D391AEF8 /* Models */,
 				9F58BDF7D4F04F6C4DC3CB6C /* Views */,
@@ -255,7 +263,10 @@
 				A1B2C3D4E5F6A7B8C9D0E1F5 /* LightingOCRService.swift */,
 				0BC58B6DD0C83F19466EB9FD /* OCRService.swift */,
 				4BC24A901CAE93DBBD54D9BE /* RecommendationEngine.swift */,
+				A1B2C3D4E5F6A7B8C9D0E2F6 /* RebateDatabase.swift */,
+				A1B2C3D4E5F6A7B8C9D0E2F8 /* RebateService.swift */,
 				B0CDC592D83F169C46EAF5C7 /* RoomCaptureService.swift */,
+				A1B2C3D4E5F6A7B8C9D0E2F7 /* StateDetectionService.swift */,
 				010EA0BD2F4A4A5900F3E8AD /* UpgradeEngine.swift */,
 			);
 			path = Services;
@@ -431,6 +442,9 @@
 				A67A5054EB4F62DF376ADB7E /* ScanView.swift in Sources */,
 				D10C78969BAD8C84AB9BA727 /* WindowInfo.swift in Sources */,
 				F1E0D9C8B7A6F5E4D3C2B1A6 /* WindowQuestionnaireView.swift in Sources */,
+				F1E0D9C8B7A6F5E4D3C2B1B4 /* RebateDatabase.swift in Sources */,
+				F1E0D9C8B7A6F5E4D3C2B1B5 /* StateDetectionService.swift in Sources */,
+				F1E0D9C8B7A6F5E4D3C2B1B6 /* RebateService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -441,6 +455,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCAT_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Dezenit/Dezenit.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3V7T9UPYM9;
 				ENABLE_PREVIEWS = YES;
@@ -467,6 +482,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCAT_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Dezenit/Dezenit.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3V7T9UPYM9;
 				ENABLE_PREVIEWS = YES;
