@@ -58,7 +58,7 @@ struct OnboardingView: View {
                 .padding(.bottom, 40)
             }
         }
-        .background(Constants.secondaryColor.ignoresSafeArea())
+        .background(Color.black.ignoresSafeArea())
         .sensoryFeedback(.success, trigger: didGetStarted)
     }
 

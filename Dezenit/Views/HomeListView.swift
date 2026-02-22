@@ -8,17 +8,21 @@ struct HomeListView: View {
     @State private var showingAddHome = false
     @State private var homeToDelete: Home?
     @State private var showDeleteConfirmation = false
+    @State private var navigateToSingleHome = false
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 if homes.isEmpty {
                     emptyState
+                } else if homes.count == 1 {
+                    // Auto-navigate to the single home's dashboard
+                    HomeDashboardView(home: homes[0])
                 } else {
                     homeList
                 }
             }
-            .navigationTitle("Dezenit")
+            .navigationTitle(homes.count == 1 ? (homes[0].name.isEmpty ? "Home" : homes[0].name) : "Dezenit")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 if !homes.isEmpty {
@@ -200,6 +204,25 @@ private struct AddHomeSheet: View {
                         }
                     }
                     .pickerStyle(.navigationLink)
+
+                    if let city = locationDetector.detectedCity {
+                        HStack(spacing: 6) {
+                            Image(systemName: "location.fill")
+                                .font(.caption)
+                                .foregroundStyle(Constants.accentColor)
+                            Text("Based on your location (\(city))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else if locationDetector.locationDenied {
+                        Text("Location unavailable. Select your climate zone manually.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Text("Climate zone affects heating/cooling load calculations.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Add Home")

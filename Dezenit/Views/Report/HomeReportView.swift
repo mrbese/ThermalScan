@@ -3,6 +3,7 @@ import UIKit
 
 struct HomeReportView: View {
     let home: Home
+    @Environment(\.dismiss) private var dismiss
     @State private var gradeRevealed = false
     @State private var showingPDFShare = false
     @State private var pdfURL: URL?
@@ -122,6 +123,7 @@ struct HomeReportView: View {
                     batterySynergySection
                 }
                 shareSection
+                doneSection
             }
             .padding()
         }
@@ -988,10 +990,31 @@ struct HomeReportView: View {
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Constants.secondaryColor, in: RoundedRectangle(cornerRadius: 14))
-                .foregroundStyle(.white)
+                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 14))
+                .foregroundStyle(.primary)
             }
         }
+    }
+
+    private var doneSection: some View {
+        Button {
+            dismiss()
+        } label: {
+            HStack {
+                Image(systemName: "checkmark.circle")
+                Text("Back to Home")
+            }
+            .fontWeight(.semibold)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 14))
+            .foregroundStyle(Constants.accentColor)
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Constants.accentColor, lineWidth: 1.5)
+            )
+        }
+        .padding(.top, 8)
     }
 
     private func generateReportText() -> String {

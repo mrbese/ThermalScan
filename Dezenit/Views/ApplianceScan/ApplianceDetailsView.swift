@@ -23,10 +23,17 @@ struct ApplianceDetailsView: View {
     @State private var showingResult = false
     @State private var savedAppliance: Appliance?
 
+    private var isLightingCategory: Bool {
+        [.ledBulb, .cflBulb, .incandescentBulb].contains(category)
+    }
+
     var body: some View {
         NavigationStack {
             Form {
                 categorySection
+                if isLightingCategory {
+                    bulbQuantitySection
+                }
                 detailsSection
                 usageSection
                 roomSection
@@ -98,6 +105,43 @@ struct ApplianceDetailsView: View {
         }
     }
 
+    private var bulbQuantitySection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("How many of these bulbs?")
+                    .font(.subheadline.bold())
+
+                HStack(spacing: 8) {
+                    ForEach([1, 2, 3, 4, 5, 6], id: \.self) { count in
+                        Button {
+                            quantity = count
+                        } label: {
+                            Text(count == 6 ? "6+" : "\(count)")
+                                .font(.headline)
+                                .frame(width: 48, height: 48)
+                                .background(
+                                    quantity == count
+                                        ? Constants.accentColor
+                                        : Color(.secondarySystemBackground),
+                                    in: RoundedRectangle(cornerRadius: 10)
+                                )
+                                .foregroundStyle(quantity == count ? .white : .primary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                if quantity >= 6 {
+                    Stepper("Exact count: \(quantity)", value: $quantity, in: 6...50)
+                        .font(.subheadline)
+                }
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("Quantity")
+        }
+    }
+
     private var detailsSection: some View {
         Section("Details") {
             TextField("Name", text: $name)
@@ -134,7 +178,9 @@ struct ApplianceDetailsView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Stepper("Quantity: \(quantity)", value: $quantity, in: 1...50)
+            if !isLightingCategory {
+                Stepper("Quantity: \(quantity)", value: $quantity, in: 1...50)
+            }
         }
     }
 

@@ -55,9 +55,11 @@ struct EquipmentDetailsView: View {
             }
             .sheet(isPresented: $showingCamera) {
                 EquipmentCameraView(equipmentType: equipmentType) { image in
-                    capturedImage = image
                     showingCamera = false
-                    processOCR(image: image)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        capturedImage = image
+                        processOCR(image: image)
+                    }
                 }
             }
             .navigationDestination(isPresented: $showingResult) {

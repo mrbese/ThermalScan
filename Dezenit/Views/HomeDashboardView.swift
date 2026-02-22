@@ -45,14 +45,14 @@ struct HomeDashboardView: View {
                 showingEquipmentScan = false
             })
         }
-        .sheet(isPresented: $showingApplianceScan) {
+        .sheet(isPresented: $showingApplianceScan, onDismiss: {
+            if showingApplianceDetailsPrefill != nil {
+                showingApplianceDetails = true
+            }
+        }) {
             ApplianceScanView { result, image in
+                showingApplianceDetailsPrefill = (result.category, image)
                 showingApplianceScan = false
-                // Navigate to details with prefilled data
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    showingApplianceDetailsPrefill = (result.category, image)
-                    showingApplianceDetails = true
-                }
             }
         }
         .sheet(isPresented: $showingApplianceManual) {
@@ -71,13 +71,14 @@ struct HomeDashboardView: View {
                 )
             }
         }
-        .sheet(isPresented: $showingLightingScan) {
+        .sheet(isPresented: $showingLightingScan, onDismiss: {
+            if showingLightingDetailsPrefill != nil {
+                showingLightingDetails = true
+            }
+        }) {
             LightingCloseupView { result, image in
+                showingLightingDetailsPrefill = (result, image)
                 showingLightingScan = false
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    showingLightingDetailsPrefill = (result, image)
-                    showingLightingDetails = true
-                }
             }
         }
         .sheet(isPresented: $showingLightingDetails, onDismiss: { showingLightingDetailsPrefill = nil }) {
@@ -92,20 +93,22 @@ struct HomeDashboardView: View {
                 )
             }
         }
-        .sheet(isPresented: $showingBillScan) {
+        .sheet(isPresented: $showingBillScan, onDismiss: {
+            if showingBillDetailsPrefill != nil {
+                showingBillDetails = true
+            } else if pendingBillManual {
+                pendingBillManual = false
+                showingBillManual = true
+            }
+        }) {
             BillUploadView(
                 onResult: { result, image in
+                    showingBillDetailsPrefill = (result, image)
                     showingBillScan = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        showingBillDetailsPrefill = (result, image)
-                        showingBillDetails = true
-                    }
                 },
                 onManual: {
+                    pendingBillManual = true
                     showingBillScan = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        showingBillManual = true
-                    }
                 }
             )
         }
@@ -134,6 +137,7 @@ struct HomeDashboardView: View {
     @State private var showingApplianceDetailsPrefill: (ApplianceCategory, UIImage)?
     @State private var showingLightingDetails = false
     @State private var showingLightingDetailsPrefill: (BulbOCRResult, UIImage)?
+    @State private var pendingBillManual = false
 
     // MARK: - Audit Banner
 
@@ -645,7 +649,7 @@ struct HomeDashboardView: View {
                     }
                     .foregroundStyle(.white)
                     .padding()
-                    .background(Constants.secondaryColor, in: RoundedRectangle(cornerRadius: 14))
+                    .background(Constants.accentColor.opacity(0.85), in: RoundedRectangle(cornerRadius: 14))
                 }
             }
         }
