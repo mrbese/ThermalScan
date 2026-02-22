@@ -177,6 +177,10 @@ struct EquipmentDetailsView: View {
     // MARK: - Save
 
     private func saveEquipment() {
+        guard savedEquipment == nil else {
+            showingResult = true
+            return
+        }
         let spec = EfficiencyDatabase.lookup(type: equipmentType, age: ageRange)
         let efficiency = Double(manualEfficiency) ?? spec.estimated
 

@@ -174,6 +174,10 @@ struct DetailsView: View {
     }
 
     private func saveAndCalculate() {
+        guard savedRoom == nil else {
+            showingResults = true
+            return
+        }
         guard let sqFt = Double(squareFootage), sqFt > 0 else { return }
 
         let breakdown = EnergyCalculator.calculate(
