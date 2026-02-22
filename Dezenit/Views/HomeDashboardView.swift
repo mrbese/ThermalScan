@@ -60,7 +60,7 @@ struct HomeDashboardView: View {
                 showingApplianceManual = false
             })
         }
-        .sheet(isPresented: $showingApplianceDetails) {
+        .sheet(isPresented: $showingApplianceDetails, onDismiss: { showingApplianceDetailsPrefill = nil }) {
             if let (category, image) = showingApplianceDetailsPrefill {
                 ApplianceDetailsView(
                     home: home,
@@ -80,12 +80,13 @@ struct HomeDashboardView: View {
                 }
             }
         }
-        .sheet(isPresented: $showingLightingDetails) {
-            if let (result, _) = showingLightingDetailsPrefill {
+        .sheet(isPresented: $showingLightingDetails, onDismiss: { showingLightingDetailsPrefill = nil }) {
+            if let (result, image) = showingLightingDetailsPrefill {
                 ApplianceDetailsView(
                     home: home,
                     prefilledCategory: result.bulbType ?? .ledBulb,
                     prefilledWattage: result.wattage,
+                    prefilledImage: image,
                     detectionMethod: "ocr",
                     onComplete: { showingLightingDetails = false }
                 )
@@ -101,6 +102,7 @@ struct HomeDashboardView: View {
                     }
                 },
                 onManual: {
+                    showingBillScan = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         showingBillManual = true
                     }
@@ -112,7 +114,7 @@ struct HomeDashboardView: View {
                 showingBillManual = false
             })
         }
-        .sheet(isPresented: $showingBillDetails) {
+        .sheet(isPresented: $showingBillDetails, onDismiss: { showingBillDetailsPrefill = nil }) {
             if let (result, image) = showingBillDetailsPrefill {
                 BillDetailsView(
                     home: home,
@@ -321,8 +323,9 @@ struct HomeDashboardView: View {
                         .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
                     }
                     .buttonStyle(.plain)
-                    .swipeActions(edge: .trailing) {
+                    .contextMenu {
                         Button(role: .destructive) {
+                            home.updatedAt = Date()
                             modelContext.delete(room)
                         } label: {
                             Label("Delete", systemImage: "trash")
@@ -385,8 +388,9 @@ struct HomeDashboardView: View {
                         .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
                     }
                     .buttonStyle(.plain)
-                    .swipeActions(edge: .trailing) {
+                    .contextMenu {
                         Button(role: .destructive) {
+                            home.updatedAt = Date()
                             modelContext.delete(item)
                         } label: {
                             Label("Delete", systemImage: "trash")
@@ -463,35 +467,41 @@ struct HomeDashboardView: View {
                 .background(Constants.accentColor.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))
 
                 ForEach(home.appliances) { appliance in
-                    HStack(spacing: 12) {
-                        Image(systemName: appliance.categoryEnum.icon)
-                            .font(.title3)
-                            .foregroundStyle(Constants.accentColor)
-                            .frame(width: 28)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(appliance.name)
-                                .font(.subheadline.bold())
-                            HStack(spacing: 4) {
-                                Text("\(Int(appliance.estimatedWattage))W")
-                                Text("·")
-                                Text(formatHours(appliance.hoursPerDay) + " hrs/day")
-                                if appliance.quantity > 1 {
-                                    Text("· x\(appliance.quantity)")
+                    NavigationLink {
+                        ApplianceResultView(appliance: appliance)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: appliance.categoryEnum.icon)
+                                .font(.title3)
+                                .foregroundStyle(Constants.accentColor)
+                                .frame(width: 28)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(appliance.name)
+                                    .font(.subheadline.bold())
+                                HStack(spacing: 4) {
+                                    Text("\(Int(appliance.estimatedWattage))W")
+                                    Text("·")
+                                    Text(formatHours(appliance.hoursPerDay) + " hrs/day")
+                                    if appliance.quantity > 1 {
+                                        Text("· x\(appliance.quantity)")
+                                    }
                                 }
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             }
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            Spacer()
+                            Text("$\(Int(appliance.annualCost()))/yr")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(Constants.accentColor)
                         }
-                        Spacer()
-                        Text("$\(Int(appliance.annualCost()))/yr")
-                            .font(.caption.monospacedDigit())
-                            .foregroundStyle(Constants.accentColor)
+                        .padding(12)
+                        .background(.background, in: RoundedRectangle(cornerRadius: 10))
+                        .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
                     }
-                    .padding(12)
-                    .background(.background, in: RoundedRectangle(cornerRadius: 10))
-                    .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
-                    .swipeActions(edge: .trailing) {
+                    .buttonStyle(.plain)
+                    .contextMenu {
                         Button(role: .destructive) {
+                            home.updatedAt = Date()
                             modelContext.delete(appliance)
                         } label: {
                             Label("Delete", systemImage: "trash")
@@ -580,9 +590,7 @@ struct HomeDashboardView: View {
                                         .font(.subheadline.bold())
                                 }
                                 if let start = bill.billingPeriodStart {
-                                    let formatter = DateFormatter()
-                                    let _ = (formatter.dateFormat = "MMM yyyy")
-                                    Text(formatter.string(from: start))
+                                    Text(Self.billDateFormatter.string(from: start))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -602,8 +610,9 @@ struct HomeDashboardView: View {
                         .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
                     }
                     .buttonStyle(.plain)
-                    .swipeActions(edge: .trailing) {
+                    .contextMenu {
                         Button(role: .destructive) {
+                            home.updatedAt = Date()
                             modelContext.delete(bill)
                         } label: {
                             Label("Delete", systemImage: "trash")
@@ -641,6 +650,12 @@ struct HomeDashboardView: View {
             }
         }
     }
+
+    private static let billDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM yyyy"
+        return f
+    }()
 
     private func formatHours(_ hours: Double) -> String {
         if hours == floor(hours) { return String(Int(hours)) }

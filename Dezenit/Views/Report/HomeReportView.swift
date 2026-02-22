@@ -2,6 +2,8 @@ import SwiftUI
 
 struct HomeReportView: View {
     let home: Home
+    @State private var gradeRevealed = false
+    @StateObject private var stateDetector = StateDetectionService()
 
     private var grade: EfficiencyGrade {
         GradingEngine.grade(for: home)
@@ -76,7 +78,7 @@ struct HomeReportView: View {
                 if !home.equipment.isEmpty {
                     costSection
                 }
-                if profile.breakdown.count > 1 {
+                if !profile.breakdown.isEmpty {
                     energyProfileSection
                 }
                 if profile.billComparison != nil {
@@ -98,13 +100,23 @@ struct HomeReportView: View {
                 if taxCredits.grandTotal > 0 {
                     taxCreditSection
                 }
-                batterySynergySection
+                if let state = stateDetector.detectedState {
+                    rebateSection(state: state)
+                }
+                if !home.equipment.isEmpty {
+                    batterySynergySection
+                }
                 shareSection
             }
             .padding()
         }
         .navigationTitle("Home Report")
         .navigationBarTitleDisplayMode(.large)
+        .onAppear {
+            gradeRevealed = true
+            stateDetector.detectState()
+        }
+        .sensoryFeedback(.success, trigger: gradeRevealed)
     }
 
     // MARK: - Summary
@@ -798,6 +810,76 @@ struct HomeReportView: View {
         .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
     }
 
+    // MARK: - Rebates
+
+    private func rebateSection(state: USState) -> some View {
+        let matched = RebateService.matchRebates(for: home, state: state)
+
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "dollarsign.arrow.circlepath")
+                    .foregroundStyle(.green)
+                Text("State & Utility Rebates")
+                    .font(.headline)
+            }
+
+            Text("Available in \(state.rawValue)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if matched.isEmpty {
+                Text("No matching rebates found for your equipment in \(state.rawValue). Check DSIRE for the latest programs.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(matched) { rebate in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(rebate.title)
+                            .font(.subheadline.bold())
+                        Text(rebate.description)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        HStack {
+                            Text(rebate.amountDescription)
+                                .font(.caption.bold())
+                                .foregroundStyle(.green)
+                            Spacer()
+                            Text(rebate.programName)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        if let url = URL(string: rebate.url) {
+                            Link("View Program Details", destination: url)
+                                .font(.caption)
+                        }
+                    }
+                    .padding(12)
+                    .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 10))
+                }
+            }
+
+            Divider()
+
+            // dsireusa.org is a known-good URL
+            Link(destination: URL(string: "https://www.dsireusa.org")!) {
+                HStack(spacing: 6) {
+                    Image(systemName: "magnifyingglass")
+                    Text("Search All Programs on DSIRE")
+                        .font(.subheadline.bold())
+                }
+            }
+
+            Text("Rebate availability and amounts change frequently. Always verify eligibility directly with the program administrator before making purchasing decisions.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16)
+        .background(.background, in: RoundedRectangle(cornerRadius: 16))
+        .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+    }
+
     // MARK: - Battery Synergy
 
     private var batterySynergySection: some View {
@@ -955,6 +1037,19 @@ struct HomeReportView: View {
             if credits.total25D > 0 { parts.append("Section 25D: $\(Int(credits.total25D))") }
             parts.append("Total Potential Credits: $\(Int(credits.grandTotal))")
             parts.append("")
+        }
+
+        if let state = stateDetector.detectedState {
+            let matched = RebateService.matchRebates(for: home, state: state)
+            if !matched.isEmpty {
+                parts.append("STATE & UTILITY REBATES (\(state.rawValue))")
+                parts.append("-".repeated(30))
+                for rebate in matched {
+                    parts.append("- \(rebate.title): \(rebate.amountDescription)")
+                    parts.append("  \(rebate.programName) — \(rebate.url)")
+                }
+                parts.append("")
+            }
         }
 
         parts.append("Generated by Dezenit | dezenit.com | Built by Omer Bese")

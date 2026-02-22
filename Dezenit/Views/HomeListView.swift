@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct HomeListView: View {
     @Environment(\.modelContext) private var modelContext
@@ -108,6 +109,7 @@ struct HomeListView: View {
 
     private func deleteHomes(at offsets: IndexSet) {
         if let index = offsets.first {
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
             homeToDelete = homes[index]
             showDeleteConfirmation = true
         }
@@ -209,7 +211,7 @@ private struct AddHomeSheet: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         let home = Home(
-                            name: name,
+                            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
                             address: address.isEmpty ? nil : address,
                             yearBuilt: yearBuilt,
                             totalSqFt: Double(sqFt),
@@ -219,7 +221,15 @@ private struct AddHomeSheet: View {
                         dismiss()
                     }
                     .fontWeight(.semibold)
-                    .disabled(name.isEmpty)
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
                 }
             }
             .onAppear {
