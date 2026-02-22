@@ -1,12 +1,16 @@
 import SwiftUI
 import RoomPlan
 
+private struct ScanResult: Identifiable {
+    let id = UUID()
+    let sqFt: Double
+    let windows: [WindowInfo]
+}
+
 struct ScanView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var service = RoomCaptureService()
-    @State private var detectedSqFt: Double = 0
-    @State private var detectedWindows: [WindowInfo] = []
-    @State private var showingDetails = false
+    @State private var scanResult: ScanResult?
     @State private var scanStarted = false
 
     var home: Home? = nil
@@ -38,8 +42,10 @@ struct ScanView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
-            .sheet(isPresented: $showingDetails) {
-                DetailsView(squareFootage: detectedSqFt, scannedWindows: detectedWindows, home: home)
+            .sheet(item: $scanResult) { result in
+                NavigationStack {
+                    DetailsView(squareFootage: result.sqFt, scannedWindows: result.windows, home: home)
+                }
             }
         }
     }
@@ -156,9 +162,7 @@ struct ScanView: View {
                 .multilineTextAlignment(.center)
 
             Button(action: {
-                detectedSqFt = sqFt
-                detectedWindows = windows
-                showingDetails = true
+                scanResult = ScanResult(sqFt: sqFt, windows: windows)
             }) {
                 Text("Continue")
                     .fontWeight(.semibold)
