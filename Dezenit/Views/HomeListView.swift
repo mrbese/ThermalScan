@@ -5,6 +5,8 @@ struct HomeListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Home.updatedAt, order: .reverse) private var homes: [Home]
     @State private var showingAddHome = false
+    @State private var homeToDelete: Home?
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
         NavigationStack {
@@ -31,6 +33,17 @@ struct HomeListView: View {
                 AddHomeSheet { home in
                     modelContext.insert(home)
                 }
+            }
+            .confirmationDialog(
+                "Delete Home",
+                isPresented: $showDeleteConfirmation,
+                presenting: homeToDelete
+            ) { home in
+                Button("Delete \"\(home.name.isEmpty ? "Unnamed Home" : home.name)\"", role: .destructive) {
+                    modelContext.delete(home)
+                }
+            } message: { _ in
+                Text("This will permanently delete all rooms and equipment data for this home.")
             }
         }
     }
@@ -93,8 +106,9 @@ struct HomeListView: View {
     }
 
     private func deleteHomes(at offsets: IndexSet) {
-        for index in offsets {
-            modelContext.delete(homes[index])
+        if let index = offsets.first {
+            homeToDelete = homes[index]
+            showDeleteConfirmation = true
         }
     }
 }
