@@ -195,14 +195,18 @@ enum EfficiencyDatabase {
     ) -> Double {
         switch type {
         case .centralAC, .heatPump, .windowUnit:
-            let factor: Double
+            // correctedFactor = btuPerSqFt * fullLoadHours / 1000
+            // Hot:      30 BTU/sqft * 1800 hrs / 1000 = 54
+            // Moderate: 25 BTU/sqft * 1100 hrs / 1000 = 27.5
+            // Cold:     35 BTU/sqft *  600 hrs / 1000 = 21
+            let correctedFactor: Double
             switch climateZone {
-            case .hot: factor = 1800
-            case .moderate: factor = 1100
-            case .cold: factor = 600
+            case .hot:      correctedFactor = 54.0
+            case .moderate: correctedFactor = 27.5
+            case .cold:     correctedFactor = 21.0
             }
             guard efficiency > 0 else { return 0 }
-            return (homeSqFt * factor) / efficiency * electricityRate
+            return (homeSqFt * correctedFactor) / efficiency * electricityRate
 
         case .furnace:
             let factor: Double
