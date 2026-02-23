@@ -524,6 +524,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Manor OS uses your camera to scan rooms with LiDAR and photograph equipment labels for OCR.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your approximate location is used to suggest a climate zone for energy calculations.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Manor OS accesses your photo library so you can import utility bill images for parsing.";
@@ -551,6 +552,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Manor OS uses your camera to scan rooms with LiDAR and photograph equipment labels for OCR.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Your approximate location is used to suggest a climate zone for energy calculations.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Manor OS accesses your photo library so you can import utility bill images for parsing.";

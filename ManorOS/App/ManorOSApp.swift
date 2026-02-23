@@ -18,8 +18,10 @@ struct ManorOSApp: App {
                 configurations: [config]
             )
         } catch {
+            #if DEBUG
             print("[ManorOS] Versioned container failed: \(error)")
             print("[ManorOS] Attempting legacy store upgrade...")
+            #endif
         }
 
         // Attempt 2: Existing store was created without VersionedSchema.
@@ -32,7 +34,9 @@ struct ManorOSApp: App {
                 configurations: legacyConfig
             )
             try legacyContainer.mainContext.save()
+            #if DEBUG
             print("[ManorOS] Legacy store stamped, retrying versioned...")
+            #endif
 
             return try ModelContainer(
                 for: schema,
@@ -40,8 +44,10 @@ struct ManorOSApp: App {
                 configurations: [config]
             )
         } catch {
+            #if DEBUG
             print("[ManorOS] Legacy upgrade failed: \(error)")
             print("[ManorOS] Deleting store and starting fresh...")
+            #endif
         }
 
         // Attempt 3: Delete corrupted store and recreate
