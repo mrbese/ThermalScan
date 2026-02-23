@@ -4,7 +4,8 @@ DerivedData/
 *.xcuserstate
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
-*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
 
 # OS
 .DS_Store
@@ -24,3 +25,9 @@ PreviewContent/
 
 # Test results
 *.xcresult
+
+# Build logs
+build.log
+
+# Design assets (not part of build)
+3D_Icons/
