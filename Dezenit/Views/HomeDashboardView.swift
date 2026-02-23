@@ -7,6 +7,7 @@ struct HomeDashboardView: View {
     @Bindable var home: Home
     @State private var showingScan = false
     @State private var showingManualRoom = false
+    @State private var editingPlaceholderRoom: Room?
     @State private var showingEquipmentScan = false
     @State private var showingApplianceScan = false
     @State private var showingApplianceManual = false
@@ -38,6 +39,11 @@ struct HomeDashboardView: View {
         .sheet(isPresented: $showingManualRoom) {
             DetailsView(squareFootage: nil, home: home, onComplete: {
                 showingManualRoom = false
+            })
+        }
+        .sheet(item: $editingPlaceholderRoom) { room in
+            DetailsView(squareFootage: nil, home: home, existingRoom: room, onComplete: {
+                editingPlaceholderRoom = nil
             })
         }
         .sheet(isPresented: $showingEquipmentScan) {
@@ -306,33 +312,71 @@ struct HomeDashboardView: View {
                     .padding(.vertical, 8)
             } else {
                 ForEach(home.rooms) { room in
-                    NavigationLink {
-                        ResultsView(room: room)
-                    } label: {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(room.name.isEmpty ? "Unnamed Room" : room.name)
-                                    .font(.subheadline.bold())
-                                Text("\(Int(room.squareFootage)) sq ft")
+                    if room.squareFootage > 0 {
+                        // Completed room — navigate to results
+                        NavigationLink {
+                            ResultsView(room: room)
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(room.name.isEmpty ? "Unnamed Room" : room.name)
+                                        .font(.subheadline.bold())
+                                    Text("\(Int(room.squareFootage)) sq ft")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Text("\(Int(room.calculatedBTU).formatted()) BTU")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(Constants.accentColor)
+                            }
+                            .padding(12)
+                            .background(.background, in: RoundedRectangle(cornerRadius: 10))
+                            .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                home.updatedAt = Date()
+                                modelContext.delete(room)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    } else {
+                        // Placeholder room — tap to fill in details
+                        Button {
+                            editingPlaceholderRoom = room
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(room.name.isEmpty ? "Unnamed Room" : room.name)
+                                        .font(.subheadline.bold())
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "exclamationmark.circle")
+                                            .font(.caption2)
+                                        Text("Tap to scan or add details")
+                                    }
+                                    .font(.caption)
+                                    .foregroundStyle(.orange)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
-                            Spacer()
-                            Text("\(Int(room.calculatedBTU).formatted()) BTU")
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(Constants.accentColor)
+                            .padding(12)
+                            .background(.background, in: RoundedRectangle(cornerRadius: 10))
+                            .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
                         }
-                        .padding(12)
-                        .background(.background, in: RoundedRectangle(cornerRadius: 10))
-                        .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
-                    }
-                    .buttonStyle(.plain)
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            home.updatedAt = Date()
-                            modelContext.delete(room)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                home.updatedAt = Date()
+                                modelContext.delete(room)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
                         }
                     }
                 }

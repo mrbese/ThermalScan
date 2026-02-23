@@ -15,6 +15,7 @@ struct ScanView: View {
     @State private var showingManualEntry = false
 
     var home: Home? = nil
+    var existingRoom: Room? = nil
 
     var body: some View {
         NavigationStack {
@@ -36,7 +37,7 @@ struct ScanView: View {
                     }
                 }
             }
-            .navigationTitle("Scan Room")
+            .navigationTitle(existingRoom.map { $0.name.isEmpty ? "Scan Room" : "Scan \($0.name)" } ?? "Scan Room")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -44,13 +45,13 @@ struct ScanView: View {
                 }
             }
             .sheet(item: $scanResult) { result in
-                DetailsView(squareFootage: result.sqFt, scannedWindows: result.windows, home: home, onComplete: {
+                DetailsView(squareFootage: result.sqFt, scannedWindows: result.windows, home: home, existingRoom: existingRoom, onComplete: {
                     scanResult = nil
                     dismiss()
                 })
             }
             .sheet(isPresented: $showingManualEntry) {
-                DetailsView(squareFootage: nil, home: home, onComplete: {
+                DetailsView(squareFootage: nil, home: home, existingRoom: existingRoom, onComplete: {
                     showingManualEntry = false
                     dismiss()
                 })

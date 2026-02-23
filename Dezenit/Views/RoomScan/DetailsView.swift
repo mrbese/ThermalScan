@@ -10,6 +10,7 @@ struct DetailsView: View {
     let scannedSqFt: Double?
     let windowsFromScan: Bool   // true when windows were auto-populated
     var home: Home? = nil
+    var existingRoom: Room? = nil  // non-nil = editing an existing room
     var onComplete: (() -> Void)? = nil
 
     // Form state
@@ -25,24 +26,36 @@ struct DetailsView: View {
 
     @StateObject private var locationDetector = ClimateZoneDetector()
 
-    init(squareFootage: Double?, scannedWindows: [WindowInfo] = [], home: Home? = nil, onComplete: (() -> Void)? = nil) {
+    init(squareFootage: Double?, scannedWindows: [WindowInfo] = [], home: Home? = nil, existingRoom: Room? = nil, onComplete: (() -> Void)? = nil) {
         self.scannedSqFt = squareFootage
         self.windowsFromScan = !scannedWindows.isEmpty
         self.home = home
+        self.existingRoom = existingRoom
         self.onComplete = onComplete
-        if let sqFt = squareFootage {
+
+        // Pre-populate from existing room if editing
+        if let room = existingRoom {
+            _roomName = State(initialValue: room.name)
+            if room.squareFootage > 0 {
+                _squareFootage = State(initialValue: "\(Int(room.squareFootage))")
+            }
+            _ceilingHeight = State(initialValue: room.ceilingHeightOption)
+            _climateZone = State(initialValue: room.climateZoneEnum)
+            _insulation = State(initialValue: room.insulationEnum)
+            _windows = State(initialValue: room.windows)
+        } else if let sqFt = squareFootage {
             _squareFootage = State(initialValue: "\(Int(sqFt))")
+            // Mark scanned windows as unassessed — LiDAR can detect count/size/direction
+            // but not pane type, frame material, or condition
+            let preparedWindows = scannedWindows.map { w in
+                var copy = w
+                copy.paneType = .notAssessed
+                copy.frameMaterial = .notAssessed
+                copy.condition = .notAssessed
+                return copy
+            }
+            _windows = State(initialValue: preparedWindows)
         }
-        // Mark scanned windows as unassessed — LiDAR can detect count/size/direction
-        // but not pane type, frame material, or condition
-        let preparedWindows = scannedWindows.map { w in
-            var copy = w
-            copy.paneType = .notAssessed
-            copy.frameMaterial = .notAssessed
-            copy.condition = .notAssessed
-            return copy
-        }
-        _windows = State(initialValue: preparedWindows)
     }
 
     var body: some View {
@@ -87,7 +100,7 @@ struct DetailsView: View {
                 }
             }
             .onAppear {
-                locationDetector.detectClimateZone { zone in
+                locationDetector.detectClimateZoneViaGPS { zone in
                     if let zone { climateZone = zone }
                 }
             }
@@ -242,24 +255,39 @@ struct DetailsView: View {
             windows: windows
         )
 
-        let room = Room(
-            name: roomName,
-            squareFootage: sqFt,
-            ceilingHeight: ceilingHeight.feet,
-            climateZone: climateZone,
-            insulation: insulation,
-            windows: windows,
-            calculatedBTU: breakdown.finalBTU,
-            calculatedTonnage: breakdown.tonnage,
-            scanWasUsed: scannedSqFt != nil
-        )
+        if let existingRoom {
+            // Update existing room in place (e.g. filling in a placeholder)
+            existingRoom.name = roomName
+            existingRoom.squareFootage = sqFt
+            existingRoom.ceilingHeight = ceilingHeight.feet
+            existingRoom.climateZone = climateZone.rawValue
+            existingRoom.insulation = insulation.rawValue
+            existingRoom.windows = windows
+            existingRoom.calculatedBTU = breakdown.finalBTU
+            existingRoom.calculatedTonnage = breakdown.tonnage
+            existingRoom.scanWasUsed = scannedSqFt != nil
+            if let home { home.updatedAt = Date() }
+            savedRoom = existingRoom
+        } else {
+            let room = Room(
+                name: roomName,
+                squareFootage: sqFt,
+                ceilingHeight: ceilingHeight.feet,
+                climateZone: climateZone,
+                insulation: insulation,
+                windows: windows,
+                calculatedBTU: breakdown.finalBTU,
+                calculatedTonnage: breakdown.tonnage,
+                scanWasUsed: scannedSqFt != nil
+            )
 
-        if let home {
-            room.home = home
-            home.updatedAt = Date()
+            if let home {
+                room.home = home
+                home.updatedAt = Date()
+            }
+            modelContext.insert(room)
+            savedRoom = room
         }
-        modelContext.insert(room)
-        savedRoom = room
         showingResults = true
     }
 }
@@ -363,7 +391,7 @@ final class ClimateZoneDetector: NSObject, ObservableObject, CLLocationManagerDe
         locationManager.delegate = self
     }
 
-    func detectClimateZone(completion: @escaping (ClimateZone?) -> Void) {
+    func detectClimateZoneViaGPS(completion: @escaping (ClimateZone?) -> Void) {
         self.completion = completion
         switch locationManager.authorizationStatus {
         case .notDetermined:
@@ -373,6 +401,32 @@ final class ClimateZoneDetector: NSObject, ObservableObject, CLLocationManagerDe
         default:
             locationDenied = true
             completion(nil)
+        }
+    }
+
+    func geocodeAddress(_ address: String, completion: @escaping (ClimateZone?) -> Void) {
+        CLGeocoder().geocodeAddressString(address) { placemarks, error in
+            guard let placemark = placemarks?.first,
+                  let location = placemark.location else {
+                Task { @MainActor in
+                    completion(nil)
+                }
+                return
+            }
+            let lat = location.coordinate.latitude
+            let zone: ClimateZone
+            if lat < 32 { zone = .hot }
+            else if lat < 40 { zone = .moderate }
+            else { zone = .cold }
+
+            let city = [placemark.locality, placemark.administrativeArea]
+                .compactMap { $0 }
+                .joined(separator: ", ")
+
+            Task { @MainActor [weak self] in
+                if !city.isEmpty { self?.detectedCity = city }
+                completion(zone)
+            }
         }
     }
 
