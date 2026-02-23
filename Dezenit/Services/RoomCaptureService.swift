@@ -68,7 +68,7 @@ final class RoomCaptureService: NSObject, ObservableObject {
 
 // MARK: - CLLocationManagerDelegate (compass heading)
 
-extension RoomCaptureService: CLLocationManagerDelegate {
+extension RoomCaptureService: @preconcurrency CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
         // Keep refreshing so we always have the latest heading during scan
         let h = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
@@ -109,7 +109,7 @@ extension RoomCaptureService: RoomCaptureSessionDelegate {
         }
     }
 
-    nonisolated func captureSession(
+    nonisolated private func captureSession(
         _ session: RoomCaptureSession,
         didUpdate room: CapturedRoomData
     ) {}

@@ -216,7 +216,7 @@ enum ReportPDFGenerator {
 
             // Draw content
             let path = CGPath(rect: textRect, transform: nil)
-            let frame = CTFramesetterCreateFrame(framesetter, currentRange, path, nil)
+            _ = CTFramesetterCreateFrame(framesetter, currentRange, path, nil)
             let ctx = context.cgContext
             ctx.saveGState()
             ctx.translateBy(x: 0, y: pageRect.height)

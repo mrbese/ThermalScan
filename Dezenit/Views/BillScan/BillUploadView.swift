@@ -1,5 +1,5 @@
 import SwiftUI
-import AVFoundation
+@preconcurrency import AVFoundation
 import PhotosUI
 import UIKit
 
@@ -227,14 +227,16 @@ private class BillCameraService: NSObject, ObservableObject {
               let input = try? AVCaptureDeviceInput(device: device) else { return }
         if session.canAddInput(input) { session.addInput(input) }
         if session.canAddOutput(output) { session.addOutput(output) }
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.session.startRunning()
+        let session = session
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.startRunning()
         }
     }
 
     func stop() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.session.stopRunning()
+        let session = session
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.stopRunning()
         }
     }
 
