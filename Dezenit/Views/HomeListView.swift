@@ -1,5 +1,8 @@
 import SwiftUI
 import SwiftData
+import MapKit
+import CoreLocation
+import UIKit
 
 struct HomeListView: View {
     @Environment(\.modelContext) private var modelContext
@@ -7,17 +10,21 @@ struct HomeListView: View {
     @State private var showingAddHome = false
     @State private var homeToDelete: Home?
     @State private var showDeleteConfirmation = false
+    @State private var navigateToSingleHome = false
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 if homes.isEmpty {
                     emptyState
+                } else if homes.count == 1 {
+                    // Auto-navigate to the single home's dashboard
+                    HomeDashboardView(home: homes[0])
                 } else {
                     homeList
                 }
             }
-            .navigationTitle("Dezenit")
+            .navigationTitle(homes.count == 1 ? (homes[0].name.isEmpty ? "Home" : homes[0].name) : "Dezenit")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 if !homes.isEmpty {
@@ -108,6 +115,7 @@ struct HomeListView: View {
 
     private func deleteHomes(at offsets: IndexSet) {
         if let index = offsets.first {
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
             homeToDelete = homes[index]
             showDeleteConfirmation = true
         }
@@ -157,8 +165,12 @@ private struct AddHomeSheet: View {
     @State private var yearBuilt: YearRange = .y1990to2005
     @State private var sqFt = ""
     @State private var climateZone: ClimateZone = .moderate
+    @State private var homeType: HomeType = .house
+    @State private var bedroomCount: Int = 2
 
     @StateObject private var locationDetector = ClimateZoneDetector()
+    @StateObject private var addressService = AddressSearchService()
+    @FocusState private var addressFieldFocused: Bool
 
     let onSave: (Home) -> Void
 
@@ -167,7 +179,92 @@ private struct AddHomeSheet: View {
             Form {
                 Section("Home Info") {
                     TextField("Name (e.g. My House)", text: $name)
-                    TextField("Address (optional)", text: $address)
+
+                    // Address with autocomplete + location button
+                    HStack(spacing: 0) {
+                        TextField("Address (optional)", text: $address)
+                            .textContentType(.fullStreetAddress)
+                            .focused($addressFieldFocused)
+                            .onChange(of: address) { _, newValue in
+                                addressService.updateQuery(newValue)
+                                if newValue != addressService.selectedAddress {
+                                    addressService.selectedCoordinate = nil
+                                }
+                            }
+
+                        Button {
+                            Task {
+                                await addressService.useCurrentLocation()
+                                if let resolved = addressService.selectedAddress {
+                                    address = resolved
+                                }
+                                addressFieldFocused = false
+                            }
+                        } label: {
+                            Group {
+                                if addressService.isResolving {
+                                    ProgressView()
+                                } else {
+                                    Image(systemName: "location.fill")
+                                }
+                            }
+                            .frame(width: 20, height: 20)
+                            .foregroundStyle(Constants.accentColor)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(addressService.isResolving)
+                    }
+
+                    // Suggestion rows
+                    if !addressService.suggestions.isEmpty && addressFieldFocused {
+                        ForEach(addressService.suggestions.prefix(4), id: \.self) { suggestion in
+                            Button {
+                                Task {
+                                    await addressService.selectSuggestion(suggestion)
+                                    if let resolved = addressService.selectedAddress {
+                                        address = resolved
+                                    }
+                                    addressFieldFocused = false
+                                }
+                            } label: {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(suggestion.title)
+                                        .font(.subheadline)
+                                        .lineLimit(1)
+                                    if !suggestion.subtitle.isEmpty {
+                                        Text(suggestion.subtitle)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(1)
+                                    }
+                                }
+                            }
+                            .foregroundStyle(.primary)
+                        }
+                    }
+
+                    // Map preview
+                    if let coordinate = addressService.selectedCoordinate {
+                        Map(initialPosition: .region(MKCoordinateRegion(
+                            center: coordinate,
+                            span: MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)
+                        ))) {
+                            Marker("", coordinate: coordinate)
+                                .tint(Constants.accentColor)
+                        }
+                        .frame(height: 140)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .allowsHitTesting(false)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                    }
+
+                    Picker("Home Type", selection: $homeType) {
+                        ForEach(HomeType.allCases) { type in
+                            Text(type.rawValue).tag(type)
+                        }
+                    }
+
+                    Stepper("Bedrooms: \(bedroomCount)", value: $bedroomCount, in: 0...20)
                 }
 
                 Section("Details") {
@@ -198,6 +295,25 @@ private struct AddHomeSheet: View {
                         }
                     }
                     .pickerStyle(.navigationLink)
+
+                    if let city = locationDetector.detectedCity {
+                        HStack(spacing: 6) {
+                            Image(systemName: "location.fill")
+                                .font(.caption)
+                                .foregroundStyle(Constants.accentColor)
+                            Text("Based on your location (\(city))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else if locationDetector.locationDenied {
+                        Text("Location unavailable. Select your climate zone manually.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Text("Climate zone affects heating/cooling load calculations.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Add Home")
@@ -209,22 +325,40 @@ private struct AddHomeSheet: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         let home = Home(
-                            name: name,
+                            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
                             address: address.isEmpty ? nil : address,
                             yearBuilt: yearBuilt,
                             totalSqFt: Double(sqFt),
-                            climateZone: climateZone
+                            climateZone: climateZone,
+                            homeType: homeType,
+                            bedroomCount: bedroomCount
                         )
                         onSave(home)
                         dismiss()
                     }
                     .fontWeight(.semibold)
-                    .disabled(name.isEmpty)
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
                 }
             }
             .onAppear {
-                locationDetector.detectClimateZone { zone in
-                    if let zone { climateZone = zone }
+                // Detect climate zone — prefer resolved coordinate, else GPS
+                if let coord = addressService.selectedCoordinate {
+                    let lat = coord.latitude
+                    if lat < 32 { climateZone = .hot }
+                    else if lat < 40 { climateZone = .moderate }
+                    else { climateZone = .cold }
+                } else {
+                    locationDetector.detectClimateZoneViaGPS { zone in
+                        if let zone { climateZone = zone }
+                    }
                 }
             }
         }

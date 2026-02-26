@@ -15,7 +15,7 @@ final class Room {
     var createdAt: Date
     var scanWasUsed: Bool
     var home: Home?
-    @Relationship(deleteRule: .cascade) var appliances: [Appliance]
+    @Relationship(deleteRule: .nullify, inverse: \Appliance.room) var appliances: [Appliance]
 
     init(
         name: String = "",

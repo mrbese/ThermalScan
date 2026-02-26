@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct AuditFlowView: View {
     @Environment(\.modelContext) private var modelContext
@@ -36,9 +37,12 @@ struct AuditFlowView: View {
                 // Step content
                 stepContent
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .animation(.easeInOut(duration: 0.25), value: currentStep)
 
-                // Bottom buttons
-                bottomBar
+                // Bottom buttons (hidden for envelope — it has its own Save flow)
+                if currentStep != .envelopeAssessment {
+                    bottomBar
+                }
             }
             .navigationTitle("Home Audit")
             .navigationBarTitleDisplayMode(.inline)
@@ -82,11 +86,12 @@ struct AuditFlowView: View {
                 }
             }
             .sheet(isPresented: $showingLightingDetails) {
-                if let (result, _) = lightingPrefill {
+                if let (result, image) = lightingPrefill {
                     ApplianceDetailsView(
                         home: home,
                         prefilledCategory: result.bulbType ?? .ledBulb,
                         prefilledWattage: result.wattage,
+                        prefilledImage: image,
                         detectionMethod: "ocr",
                         onComplete: { showingLightingDetails = false }
                     )
@@ -120,6 +125,42 @@ struct AuditFlowView: View {
                 } else {
                     BillDetailsView(home: home, onComplete: { showingBillDetails = false })
                 }
+            }
+            // Equipment & room sheets (moved from bottom bar background)
+            .sheet(isPresented: $showingEquipmentSheet) {
+                EquipmentDetailsView(
+                    home: home,
+                    allowedTypes: pendingEquipmentTypes.isEmpty ? nil : pendingEquipmentTypes,
+                    onComplete: { showingEquipmentSheet = false }
+                )
+            }
+            .sheet(isPresented: $showingManualRoom) {
+                DetailsView(squareFootage: nil, home: home, onComplete: {
+                    showingManualRoom = false
+                })
+            }
+            .sheet(isPresented: $showingApplianceManual) {
+                ApplianceDetailsView(home: home, onComplete: { showingApplianceManual = false })
+            }
+            .sheet(isPresented: $showingLightingManual) {
+                ApplianceDetailsView(
+                    home: home,
+                    prefilledCategory: .ledBulb,
+                    onComplete: { showingLightingManual = false }
+                )
+            }
+            .sheet(item: $windowEditRoom) { room in
+                DetailsView(squareFootage: nil, home: home, existingRoom: room, onComplete: {
+                    windowEditRoom = nil
+                })
+            }
+            .sheet(item: $auditEditingRoom) { room in
+                DetailsView(squareFootage: nil, home: home, existingRoom: room, onComplete: {
+                    auditEditingRoom = nil
+                })
+            }
+            .sheet(item: $scanningPlaceholderRoom) { room in
+                ScanView(home: home, existingRoom: room)
             }
         }
     }
@@ -200,7 +241,10 @@ struct AuditFlowView: View {
     // MARK: - Step 2: Room Scanning
 
     private var roomScanningStep: some View {
-        ScrollView {
+        let completedRooms = home.rooms.filter { $0.squareFootage > 0 }
+        let placeholderRooms = home.rooms.filter { $0.squareFootage == 0 }
+
+        return ScrollView {
             VStack(spacing: 20) {
                 stepHeader(
                     icon: "camera.viewfinder",
@@ -208,9 +252,9 @@ struct AuditFlowView: View {
                     subtitle: "Add rooms to your home. Use LiDAR scanning or enter manually."
                 )
 
-                if !home.rooms.isEmpty {
-                    completedBadge("\(home.rooms.count) room\(home.rooms.count == 1 ? "" : "s") added")
-                    ForEach(home.rooms) { room in
+                if !completedRooms.isEmpty {
+                    completedBadge("\(completedRooms.count) room\(completedRooms.count == 1 ? "" : "s") scanned")
+                    ForEach(completedRooms) { room in
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(.green)
@@ -226,6 +270,63 @@ struct AuditFlowView: View {
                     }
                 }
 
+                if !placeholderRooms.isEmpty {
+                    ForEach(placeholderRooms) { room in
+                        VStack(spacing: 0) {
+                            HStack {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .foregroundStyle(.orange)
+                                Text(room.name.isEmpty ? "Unnamed Room" : room.name)
+                                    .font(.subheadline)
+                                Spacer()
+                                Text("Needs details")
+                                    .font(.caption)
+                                    .foregroundStyle(.orange)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.top, 12)
+                            .padding(.bottom, 8)
+
+                            HStack(spacing: 8) {
+                                if RoomCaptureService.isLiDARAvailable {
+                                    Button {
+                                        scanningPlaceholderRoom = room
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "camera.viewfinder")
+                                            Text("Scan")
+                                        }
+                                        .font(.caption.weight(.medium))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 8)
+                                        .foregroundStyle(Constants.accentColor)
+                                        .background(Constants.accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+
+                                Button {
+                                    auditEditingRoom = room
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "pencil")
+                                        Text("Enter Manually")
+                                    }
+                                    .font(.caption.weight(.medium))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                                    .foregroundStyle(Constants.accentColor)
+                                    .background(Constants.accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.bottom, 12)
+                        }
+                        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 10))
+                    }
+                }
+
                 HStack(spacing: 12) {
                     if RoomCaptureService.isLiDARAvailable {
                         actionButton(icon: "camera.viewfinder", label: "Scan Room") {
@@ -233,19 +334,11 @@ struct AuditFlowView: View {
                         }
                     }
                     actionButton(icon: "pencil", label: "Enter Manually") {
-                        // Present DetailsView as a sheet — uses existing flow
-                        showingScan = false
-                        // We'll reuse the scan sheet toggle for manual entry
-                        // Actually need a separate state for manual room
+                        showingManualRoom = true
                     }
                 }
             }
             .padding(20)
-        }
-        .sheet(isPresented: Binding(
-            get: { false }, set: { _ in }
-        )) {
-            // Placeholder — manual room entry handled by showingScan already
         }
     }
 
@@ -310,23 +403,10 @@ struct AuditFlowView: View {
     @State private var showingEquipmentSheet = false
     @State private var pendingEquipmentTypes: [EquipmentType] = []
     @State private var showingManualRoom = false
+    @State private var windowEditRoom: Room?
+    @State private var auditEditingRoom: Room?
+    @State private var scanningPlaceholderRoom: Room?
 
-    // Equipment sheet modifier — added to body via separate ViewModifier
-    var equipmentSheet: some View {
-        EmptyView()
-            .sheet(isPresented: $showingEquipmentSheet) {
-                EquipmentDetailsView(
-                    home: home,
-                    allowedTypes: pendingEquipmentTypes.isEmpty ? nil : pendingEquipmentTypes,
-                    onComplete: { showingEquipmentSheet = false }
-                )
-            }
-            .sheet(isPresented: $showingManualRoom) {
-                DetailsView(squareFootage: nil, home: home, onComplete: {
-                    showingManualRoom = false
-                })
-            }
-    }
 
     // MARK: - Step 5: Appliance Inventory
 
@@ -418,23 +498,31 @@ struct AuditFlowView: View {
                         .foregroundStyle(.secondary)
                         .padding(.vertical, 8)
                 } else {
-                    Text("Tap a room to edit its window assessment via the room details view.")
+                    Text("Tap a room to edit its windows.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 
                     ForEach(home.rooms) { room in
-                        HStack {
-                            Image(systemName: room.windows.isEmpty ? "circle" : "checkmark.circle.fill")
-                                .foregroundStyle(room.windows.isEmpty ? Color.secondary : Color.green)
-                            Text(room.name.isEmpty ? "Unnamed Room" : room.name)
-                                .font(.subheadline)
-                            Spacer()
-                            Text("\(room.windows.count) window\(room.windows.count == 1 ? "" : "s")")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        Button {
+                            windowEditRoom = room
+                        } label: {
+                            HStack {
+                                Image(systemName: room.windows.isEmpty ? "circle" : "checkmark.circle.fill")
+                                    .foregroundStyle(room.windows.isEmpty ? Color.secondary : Color.green)
+                                Text(room.name.isEmpty ? "Unnamed Room" : room.name)
+                                    .font(.subheadline)
+                                Spacer()
+                                Text("\(room.windows.count) window\(room.windows.count == 1 ? "" : "s")")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(12)
+                            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 10))
                         }
-                        .padding(12)
-                        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 10))
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -569,6 +657,7 @@ struct AuditFlowView: View {
 
             if currentStep == .review {
                 Button {
+                    audit?.markComplete(.review)
                     dismiss()
                 } label: {
                     Text("Finish")
@@ -577,17 +666,6 @@ struct AuditFlowView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
                         .background(Constants.accentColor, in: Capsule())
-                }
-                .buttonStyle(.plain)
-            } else if currentStep == .envelopeAssessment {
-                // Envelope has its own save button — show skip only
-                Button {
-                    moveToNextStep()
-                } label: {
-                    Text("Skip")
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .background(Color.gray.opacity(0.12), in: Capsule())
                 }
                 .buttonStyle(.plain)
             } else {
@@ -606,34 +684,21 @@ struct AuditFlowView: View {
                         completeCurrentStep()
                     } label: {
                         HStack(spacing: 4) {
-                            Text(isCurrentStepSatisfied ? "Next" : "Done")
+                            Text("Next")
                             Image(systemName: "chevron.right")
                         }
                         .foregroundStyle(.white)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 12)
-                        .background(Constants.accentColor, in: Capsule())
+                        .background(isCurrentStepSatisfied ? Constants.accentColor : Color.gray, in: Capsule())
                     }
                     .buttonStyle(.plain)
+                    .disabled(!isCurrentStepSatisfied)
                 }
             }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        // Overlay equipment & room sheets
-        .background {
-            equipmentSheet
-                .sheet(isPresented: $showingApplianceManual) {
-                    ApplianceDetailsView(home: home, onComplete: { showingApplianceManual = false })
-                }
-                .sheet(isPresented: $showingLightingManual) {
-                    ApplianceDetailsView(
-                        home: home,
-                        prefilledCategory: .ledBulb,
-                        onComplete: { showingLightingManual = false }
-                    )
-                }
-        }
     }
 
     // MARK: - Navigation Logic
@@ -641,7 +706,7 @@ struct AuditFlowView: View {
     private var isCurrentStepSatisfied: Bool {
         switch currentStep {
         case .homeBasics: return true
-        case .roomScanning: return !home.rooms.isEmpty
+        case .roomScanning: return home.rooms.contains { $0.squareFootage > 0 }
         case .hvacEquipment: return home.equipment.contains { hvacTypes.contains($0.typeEnum) }
         case .waterHeating: return home.equipment.contains { waterTypes.contains($0.typeEnum) }
         case .applianceInventory: return home.appliances.contains { !$0.categoryEnum.isLighting }
@@ -654,13 +719,37 @@ struct AuditFlowView: View {
     }
 
     private func autoCompleteCurrentStep() {
-        if isCurrentStepSatisfied && currentStep == .homeBasics {
-            // Home basics is auto-complete since home already exists
-            audit?.markComplete(.homeBasics)
+        // Auto-complete any steps that already have data
+        for step in AuditStep.allCases where step != .review {
+            if stepHasData(step) && !(audit?.isStepComplete(step) ?? true) {
+                audit?.markComplete(step)
+            }
+        }
+        // Skip to first incomplete step
+        if let audit,
+           let firstIncomplete = AuditStep.allCases.first(where: { !audit.isStepComplete($0) }) {
+            currentStep = firstIncomplete
+            audit.currentStep = firstIncomplete.rawValue
+        }
+    }
+
+    private func stepHasData(_ step: AuditStep) -> Bool {
+        switch step {
+        case .homeBasics: return true
+        case .roomScanning: return home.rooms.contains { $0.squareFootage > 0 }
+        case .hvacEquipment: return home.equipment.contains { hvacTypes.contains($0.typeEnum) }
+        case .waterHeating: return home.equipment.contains { waterTypes.contains($0.typeEnum) }
+        case .applianceInventory: return home.appliances.contains { !$0.categoryEnum.isLighting }
+        case .lightingAudit: return home.appliances.contains { $0.categoryEnum.isLighting }
+        case .windowAssessment: return home.rooms.contains { !$0.windows.isEmpty }
+        case .envelopeAssessment: return home.envelope != nil
+        case .billUpload: return !home.energyBills.isEmpty
+        case .review: return false
         }
     }
 
     private func completeCurrentStep() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         audit?.markComplete(currentStep)
         moveToNextStep()
     }

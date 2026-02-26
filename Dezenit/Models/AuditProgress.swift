@@ -94,10 +94,6 @@ final class AuditProgress {
             steps.append(step)
             completedSteps = steps
         }
-        // Advance to next incomplete step
-        if let nextStep = AuditStep.allCases.first(where: { !steps.contains($0) }) {
-            currentStep = nextStep.rawValue
-        }
     }
 
     var progressPercentage: Double {

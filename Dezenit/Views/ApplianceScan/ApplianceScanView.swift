@@ -1,5 +1,5 @@
 import SwiftUI
-import AVFoundation
+@preconcurrency import AVFoundation
 import UIKit
 
 struct ApplianceScanView: View {
@@ -134,16 +134,19 @@ struct ApplianceScanView: View {
     private func captureAndClassify() {
         camera.capturePhoto { image in
             guard let image else {
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
                 errorMessage = "Failed to capture photo. Please try again."
                 showError = true
                 return
             }
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             capturedImage = image
             isClassifying = true
 
             Task {
                 let results = await ApplianceClassificationService.classify(image: image, topK: 3)
                 if results.isEmpty {
+                    UINotificationFeedbackGenerator().notificationOccurred(.error)
                     errorMessage = "Could not identify this appliance. Try a different angle or add it manually."
                     showError = true
                     isClassifying = false
@@ -174,14 +177,16 @@ private class ApplianceCameraService: NSObject, ObservableObject {
         if session.canAddInput(input) { session.addInput(input) }
         if session.canAddOutput(output) { session.addOutput(output) }
 
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.session.startRunning()
+        let session = session
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.startRunning()
         }
     }
 
     func stop() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.session.stopRunning()
+        let session = session
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.stopRunning()
         }
     }
 
@@ -212,10 +217,13 @@ private struct CameraPreview: UIViewRepresentable {
         let view = UIView()
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
         previewLayer.videoGravity = .resizeAspectFill
-        previewLayer.frame = UIScreen.main.bounds
         view.layer.addSublayer(previewLayer)
         return view
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {}
+    func updateUIView(_ uiView: UIView, context: Context) {
+        if let previewLayer = uiView.layer.sublayers?.first as? AVCaptureVideoPreviewLayer {
+            previewLayer.frame = uiView.bounds
+        }
+    }
 }

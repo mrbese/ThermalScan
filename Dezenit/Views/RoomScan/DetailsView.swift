@@ -10,6 +10,7 @@ struct DetailsView: View {
     let scannedSqFt: Double?
     let windowsFromScan: Bool   // true when windows were auto-populated
     var home: Home? = nil
+    var existingRoom: Room? = nil  // non-nil = editing an existing room
     var onComplete: (() -> Void)? = nil
 
     // Form state
@@ -17,7 +18,7 @@ struct DetailsView: View {
     @State private var squareFootage: String = ""
     @State private var ceilingHeight: CeilingHeightOption = .eight
     @State private var climateZone: ClimateZone = .moderate
-    @State private var insulation: InsulationQuality = .average
+    @State private var insulation: InsulationQuality = .unknown
     @State private var windows: [WindowInfo] = []
     @State private var showingResults = false
     @State private var savedRoom: Room?
@@ -25,15 +26,36 @@ struct DetailsView: View {
 
     @StateObject private var locationDetector = ClimateZoneDetector()
 
-    init(squareFootage: Double?, scannedWindows: [WindowInfo] = [], home: Home? = nil, onComplete: (() -> Void)? = nil) {
+    init(squareFootage: Double?, scannedWindows: [WindowInfo] = [], home: Home? = nil, existingRoom: Room? = nil, onComplete: (() -> Void)? = nil) {
         self.scannedSqFt = squareFootage
         self.windowsFromScan = !scannedWindows.isEmpty
         self.home = home
+        self.existingRoom = existingRoom
         self.onComplete = onComplete
-        if let sqFt = squareFootage {
+
+        // Pre-populate from existing room if editing
+        if let room = existingRoom {
+            _roomName = State(initialValue: room.name)
+            if room.squareFootage > 0 {
+                _squareFootage = State(initialValue: "\(Int(room.squareFootage))")
+            }
+            _ceilingHeight = State(initialValue: room.ceilingHeightOption)
+            _climateZone = State(initialValue: room.climateZoneEnum)
+            _insulation = State(initialValue: room.insulationEnum)
+            _windows = State(initialValue: room.windows)
+        } else if let sqFt = squareFootage {
             _squareFootage = State(initialValue: "\(Int(sqFt))")
+            // Mark scanned windows as unassessed — LiDAR can detect count/size/direction
+            // but not pane type, frame material, or condition
+            let preparedWindows = scannedWindows.map { w in
+                var copy = w
+                copy.paneType = .notAssessed
+                copy.frameMaterial = .notAssessed
+                copy.condition = .notAssessed
+                return copy
+            }
+            _windows = State(initialValue: preparedWindows)
         }
-        _windows = State(initialValue: scannedWindows)
     }
 
     var body: some View {
@@ -43,6 +65,7 @@ struct DetailsView: View {
                 windowsSection
                 environmentSection
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Room Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -68,8 +91,16 @@ struct DetailsView: View {
                     WindowQuestionnaireView(window: $windows[editID.index])
                 }
             }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
+                }
+            }
             .onAppear {
-                locationDetector.detectClimateZone { zone in
+                locationDetector.detectClimateZoneViaGPS { zone in
                     if let zone { climateZone = zone }
                 }
             }
@@ -131,12 +162,12 @@ struct DetailsView: View {
         } footer: {
             VStack(alignment: .leading, spacing: 4) {
                 if windowsFromScan && !windows.isEmpty {
-                    Label("Count and size detected by LiDAR. Verify directions.", systemImage: "camera.viewfinder")
+                    Label("Count, size, and direction detected by LiDAR. Pane type, frame, and condition need manual assessment.", systemImage: "camera.viewfinder")
                         .font(.caption)
                         .foregroundStyle(Constants.accentColor)
                 }
                 if !windows.isEmpty {
-                    Text("Tap the info button to assess pane type and condition.")
+                    Text("Tap the info button on each window to assess pane type, frame, and condition.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -145,7 +176,7 @@ struct DetailsView: View {
     }
 
     private var environmentSection: some View {
-        Section("Environment") {
+        Section {
             Picker("Climate Zone", selection: $climateZone) {
                 ForEach(ClimateZone.allCases) { zone in
                     VStack(alignment: .leading) {
@@ -159,8 +190,28 @@ struct DetailsView: View {
             }
             .pickerStyle(.navigationLink)
 
+            if let city = locationDetector.detectedCity {
+                HStack(spacing: 6) {
+                    Image(systemName: "location.fill")
+                        .font(.caption)
+                        .foregroundStyle(Constants.accentColor)
+                    Text("Based on your location (\(city))")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else if locationDetector.locationDenied {
+                Text("Location unavailable. Select your climate zone manually.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text("Climate zone affects heating/cooling load calculations.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
             Picker("Insulation Quality", selection: $insulation) {
-                ForEach(InsulationQuality.allCases) { quality in
+                Text("Select...").tag(InsulationQuality.unknown)
+                ForEach(InsulationQuality.selectableCases) { quality in
                     VStack(alignment: .leading) {
                         Text(quality.rawValue)
                         Text(quality.description)
@@ -171,6 +222,14 @@ struct DetailsView: View {
                 }
             }
             .pickerStyle(.navigationLink)
+
+            if !insulation.isSelected {
+                Text("How would you rate your insulation? Check your attic or ask your home inspector.")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+        } header: {
+            Text("Environment")
         }
     }
 
@@ -196,24 +255,39 @@ struct DetailsView: View {
             windows: windows
         )
 
-        let room = Room(
-            name: roomName,
-            squareFootage: sqFt,
-            ceilingHeight: ceilingHeight.feet,
-            climateZone: climateZone,
-            insulation: insulation,
-            windows: windows,
-            calculatedBTU: breakdown.finalBTU,
-            calculatedTonnage: breakdown.tonnage,
-            scanWasUsed: scannedSqFt != nil
-        )
+        if let existingRoom {
+            // Update existing room in place (e.g. filling in a placeholder)
+            existingRoom.name = roomName
+            existingRoom.squareFootage = sqFt
+            existingRoom.ceilingHeight = ceilingHeight.feet
+            existingRoom.climateZone = climateZone.rawValue
+            existingRoom.insulation = insulation.rawValue
+            existingRoom.windows = windows
+            existingRoom.calculatedBTU = breakdown.finalBTU
+            existingRoom.calculatedTonnage = breakdown.tonnage
+            existingRoom.scanWasUsed = scannedSqFt != nil
+            if let home { home.updatedAt = Date() }
+            savedRoom = existingRoom
+        } else {
+            let room = Room(
+                name: roomName,
+                squareFootage: sqFt,
+                ceilingHeight: ceilingHeight.feet,
+                climateZone: climateZone,
+                insulation: insulation,
+                windows: windows,
+                calculatedBTU: breakdown.finalBTU,
+                calculatedTonnage: breakdown.tonnage,
+                scanWasUsed: scannedSqFt != nil
+            )
 
-        if let home {
-            room.home = home
-            home.updatedAt = Date()
+            if let home {
+                room.home = home
+                home.updatedAt = Date()
+            }
+            modelContext.insert(room)
+            savedRoom = room
         }
-        modelContext.insert(room)
-        savedRoom = room
         showingResults = true
     }
 }
@@ -251,15 +325,27 @@ private struct WindowRowView: View {
                 }
 
                 // Enhanced info line
-                HStack(spacing: 6) {
-                    Text(window.paneType.label)
-                    Text("·")
-                    Text(window.frameMaterial.rawValue)
-                    Text("·")
-                    Text(window.condition.rawValue)
+                if window.isFullyAssessed {
+                    HStack(spacing: 6) {
+                        Text(window.paneType.label)
+                        Text("·")
+                        Text(window.frameMaterial.rawValue)
+                        Text("·")
+                        Text(window.condition.rawValue)
+                    }
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.circle")
+                            .font(.caption2)
+                        Text("Needs assessment — tap")
+                        Image(systemName: "info.circle")
+                            .font(.caption2)
+                    }
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
                 }
-                .font(.caption2)
-                .foregroundStyle(.secondary)
             }
 
             Spacer()
@@ -273,8 +359,10 @@ private struct WindowRowView: View {
                 // Info/assess button
                 Button(action: onAssess) {
                     Image(systemName: "info.circle")
-                        .font(.caption)
+                        .font(.body)
                         .foregroundStyle(Constants.accentColor)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
@@ -295,12 +383,15 @@ final class ClimateZoneDetector: NSObject, ObservableObject, CLLocationManagerDe
     private let locationManager = CLLocationManager()
     private var completion: ((ClimateZone?) -> Void)?
 
+    @Published var detectedCity: String?
+    @Published var locationDenied: Bool = false
+
     override init() {
         super.init()
         locationManager.delegate = self
     }
 
-    func detectClimateZone(completion: @escaping (ClimateZone?) -> Void) {
+    func detectClimateZoneViaGPS(completion: @escaping (ClimateZone?) -> Void) {
         self.completion = completion
         switch locationManager.authorizationStatus {
         case .notDetermined:
@@ -308,7 +399,34 @@ final class ClimateZoneDetector: NSObject, ObservableObject, CLLocationManagerDe
         case .authorizedWhenInUse, .authorizedAlways:
             locationManager.requestLocation()
         default:
+            locationDenied = true
             completion(nil)
+        }
+    }
+
+    func geocodeAddress(_ address: String, completion: @escaping (ClimateZone?) -> Void) {
+        CLGeocoder().geocodeAddressString(address) { placemarks, error in
+            guard let placemark = placemarks?.first,
+                  let location = placemark.location else {
+                Task { @MainActor in
+                    completion(nil)
+                }
+                return
+            }
+            let lat = location.coordinate.latitude
+            let zone: ClimateZone
+            if lat < 32 { zone = .hot }
+            else if lat < 40 { zone = .moderate }
+            else { zone = .cold }
+
+            let city = [placemark.locality, placemark.administrativeArea]
+                .compactMap { $0 }
+                .joined(separator: ", ")
+
+            Task { @MainActor [weak self] in
+                if !city.isEmpty { self?.detectedCity = city }
+                completion(zone)
+            }
         }
     }
 
@@ -319,19 +437,38 @@ final class ClimateZoneDetector: NSObject, ObservableObject, CLLocationManagerDe
         if lat < 32 { zone = .hot }
         else if lat < 40 { zone = .moderate }
         else { zone = .cold }
-        Task { @MainActor in self.completion?(zone) }
+
+        // Reverse geocode for city name
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(location) { placemarks, _ in
+            let city = placemarks?.first.flatMap { placemark in
+                [placemark.locality, placemark.administrativeArea]
+                    .compactMap { $0 }
+                    .joined(separator: ", ")
+            }
+            Task { @MainActor [weak self] in
+                self?.detectedCity = city
+                self?.completion?(zone)
+            }
+        }
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        Task { @MainActor in self.completion?(nil) }
+        Task { @MainActor [weak self] in
+            self?.locationDenied = true
+            self?.completion?(nil)
+        }
     }
 
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         if manager.authorizationStatus == .authorizedWhenInUse ||
             manager.authorizationStatus == .authorizedAlways {
             manager.requestLocation()
-        } else {
-            Task { @MainActor in self.completion?(nil) }
+        } else if manager.authorizationStatus == .denied || manager.authorizationStatus == .restricted {
+            Task { @MainActor [weak self] in
+                self?.locationDenied = true
+                self?.completion?(nil)
+            }
         }
     }
 }

@@ -1,6 +1,13 @@
 import Foundation
 import SwiftData
 
+enum HomeType: String, CaseIterable, Codable, Identifiable {
+    case house = "House"
+    case townhouse = "Townhouse"
+    case apartment = "Apartment/Condo"
+    var id: String { rawValue }
+}
+
 enum YearRange: String, CaseIterable, Codable, Identifiable {
     case pre1970 = "Pre-1970"
     case y1970to1989 = "1970 to 1989"
@@ -19,12 +26,14 @@ final class Home {
     var yearBuilt: String // YearRange.rawValue
     var totalSqFt: Double?
     var climateZone: String // ClimateZone.rawValue
-    @Relationship(deleteRule: .cascade) var rooms: [Room]
-    @Relationship(deleteRule: .cascade) var equipment: [Equipment]
-    @Relationship(deleteRule: .cascade) var appliances: [Appliance]
-    @Relationship(deleteRule: .cascade) var energyBills: [EnergyBill]
-    @Relationship(deleteRule: .cascade) var auditProgress: [AuditProgress]
+    @Relationship(deleteRule: .cascade, inverse: \Room.home) var rooms: [Room]
+    @Relationship(deleteRule: .cascade, inverse: \Equipment.home) var equipment: [Equipment]
+    @Relationship(deleteRule: .cascade, inverse: \Appliance.home) var appliances: [Appliance]
+    @Relationship(deleteRule: .cascade, inverse: \EnergyBill.home) var energyBills: [EnergyBill]
+    @Relationship(deleteRule: .cascade, inverse: \AuditProgress.home) var auditProgress: [AuditProgress]
     var envelopeData: Data?
+    var homeType: String?        // HomeType.rawValue (nil for legacy homes)
+    var bedroomCount: Int?       // from onboarding (nil for legacy homes)
     var createdAt: Date
     var updatedAt: Date
 
@@ -33,7 +42,9 @@ final class Home {
         address: String? = nil,
         yearBuilt: YearRange = .y1990to2005,
         totalSqFt: Double? = nil,
-        climateZone: ClimateZone = .moderate
+        climateZone: ClimateZone = .moderate,
+        homeType: HomeType? = nil,
+        bedroomCount: Int? = nil
     ) {
         self.id = UUID()
         self.name = name
@@ -41,6 +52,8 @@ final class Home {
         self.yearBuilt = yearBuilt.rawValue
         self.totalSqFt = totalSqFt
         self.climateZone = climateZone.rawValue
+        self.homeType = homeType?.rawValue
+        self.bedroomCount = bedroomCount
         self.rooms = []
         self.equipment = []
         self.appliances = []
@@ -49,6 +62,11 @@ final class Home {
         self.envelopeData = nil
         self.createdAt = Date()
         self.updatedAt = Date()
+    }
+
+    var homeTypeEnum: HomeType? {
+        guard let homeType else { return nil }
+        return HomeType(rawValue: homeType)
     }
 
     var yearBuiltEnum: YearRange {

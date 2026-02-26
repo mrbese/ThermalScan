@@ -280,7 +280,7 @@ enum UpgradeEngine {
     private static func furnaceUpgrades(current: Double, climateZone: ClimateZone, sqFt: Double, electricityRate: Double, gasRate: Double) -> [UpgradeRecommendation] {
         let goodTarget = 90.0
         let betterTarget = 96.0
-        let bestHPSEER = 22.0
+        _ = 22.0 // bestHPSEER — reserved for future heat pump SEER reference
 
         let (gLow, gHigh) = scaleCost(low: 2500, high: 4500, sqFt: sqFt)
         let (bLow, bHigh) = scaleCost(low: 3500, high: 6000, sqFt: sqFt)

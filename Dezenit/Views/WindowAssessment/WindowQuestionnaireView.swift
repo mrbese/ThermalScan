@@ -5,6 +5,7 @@ struct WindowQuestionnaireView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var step = 0
+    @State private var snapshot: WindowInfo?
     private let totalSteps = 4
 
     var body: some View {
@@ -27,9 +28,15 @@ struct WindowQuestionnaireView: View {
             }
             .navigationTitle("Window Assessment")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                if snapshot == nil { snapshot = window }
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel") {
+                        if let snapshot { window = snapshot }
+                        dismiss()
+                    }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if step == totalSteps - 1 {
@@ -66,7 +73,7 @@ struct WindowQuestionnaireView: View {
                     subtitle: PaneType.single.tip
                 )
 
-                ForEach(PaneType.allCases) { pane in
+                ForEach(PaneType.selectableCases) { pane in
                     selectionCard(
                         selected: window.paneType == pane,
                         icon: paneIcon(pane),
@@ -83,6 +90,7 @@ struct WindowQuestionnaireView: View {
 
     private func paneIcon(_ pane: PaneType) -> String {
         switch pane {
+        case .notAssessed: return "questionmark.square"
         case .single: return "1.square"
         case .double: return "2.square"
         case .triple: return "3.square"
@@ -99,7 +107,7 @@ struct WindowQuestionnaireView: View {
                     subtitle: "Metal frames feel cold in winter. Vinyl and fiberglass are warmer to the touch."
                 )
 
-                ForEach(FrameMaterial.allCases) { material in
+                ForEach(FrameMaterial.selectableCases) { material in
                     selectionCard(
                         selected: window.frameMaterial == material,
                         icon: material.icon,
@@ -124,7 +132,7 @@ struct WindowQuestionnaireView: View {
                     subtitle: "Check for drafts, fog between panes, and whether it closes tight."
                 )
 
-                ForEach(WindowCondition.allCases) { condition in
+                ForEach(WindowCondition.selectableCases) { condition in
                     selectionCard(
                         selected: window.condition == condition,
                         icon: conditionIcon(condition),
@@ -144,6 +152,7 @@ struct WindowQuestionnaireView: View {
 
     private func conditionIcon(_ condition: WindowCondition) -> String {
         switch condition {
+        case .notAssessed: return "questionmark.circle"
         case .good: return "checkmark.circle"
         case .fair: return "exclamationmark.triangle"
         case .poor: return "xmark.circle"

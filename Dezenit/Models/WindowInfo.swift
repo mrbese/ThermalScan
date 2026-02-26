@@ -54,14 +54,21 @@ enum WindowSize: String, CaseIterable, Codable, Identifiable {
 }
 
 enum PaneType: String, CaseIterable, Codable, Identifiable {
+    case notAssessed = "Not Assessed"
     case single = "Single"
     case double = "Double"
     case triple = "Triple"
 
     var id: String { rawValue }
 
+    var isAssessed: Bool { self != .notAssessed }
+
+    /// Cases available for user selection (excludes notAssessed)
+    static var selectableCases: [PaneType] { [.single, .double, .triple] }
+
     var uFactor: Double {
         switch self {
+        case .notAssessed: return 0.30 // assume double-pane for calc
         case .single: return 1.10
         case .double: return 0.30
         case .triple: return 0.22
@@ -70,6 +77,7 @@ enum PaneType: String, CaseIterable, Codable, Identifiable {
 
     var label: String {
         switch self {
+        case .notAssessed: return "Not Assessed"
         case .single: return "Single Pane"
         case .double: return "Double Pane"
         case .triple: return "Triple Pane"
@@ -78,6 +86,7 @@ enum PaneType: String, CaseIterable, Codable, Identifiable {
 
     var description: String {
         switch self {
+        case .notAssessed: return "Tap the info button to assess pane type."
         case .single: return "One layer of glass. Common in pre-1980 homes. Poor insulator."
         case .double: return "Two layers with air/gas gap. Standard in modern homes. Good insulator."
         case .triple: return "Three layers with dual gas gaps. Best insulation, common in cold climates."
@@ -90,6 +99,7 @@ enum PaneType: String, CaseIterable, Codable, Identifiable {
 }
 
 enum FrameMaterial: String, CaseIterable, Codable, Identifiable {
+    case notAssessed = "Not Assessed"
     case aluminum = "Aluminum"
     case wood = "Wood"
     case vinyl = "Vinyl"
@@ -98,9 +108,14 @@ enum FrameMaterial: String, CaseIterable, Codable, Identifiable {
 
     var id: String { rawValue }
 
+    var isAssessed: Bool { self != .notAssessed }
+
+    static var selectableCases: [FrameMaterial] { [.aluminum, .wood, .vinyl, .fiberglass, .composite] }
+
     /// Thermal factor multiplier — higher = more heat transfer (worse)
     var thermalFactor: Double {
         switch self {
+        case .notAssessed: return 1.00 // neutral default for calc
         case .aluminum: return 1.30
         case .wood: return 1.00
         case .vinyl: return 0.95
@@ -111,6 +126,7 @@ enum FrameMaterial: String, CaseIterable, Codable, Identifiable {
 
     var description: String {
         switch self {
+        case .notAssessed: return "Tap the info button to assess frame material."
         case .aluminum: return "Metal frames feel cold in winter. Common in older or budget homes."
         case .wood: return "Traditional frames with decent insulation. Requires maintenance."
         case .vinyl: return "Plastic frames with good insulation. Low maintenance, affordable."
@@ -121,6 +137,7 @@ enum FrameMaterial: String, CaseIterable, Codable, Identifiable {
 
     var icon: String {
         switch self {
+        case .notAssessed: return "questionmark.circle"
         case .aluminum: return "rectangle.inset.filled"
         case .wood: return "tree"
         case .vinyl: return "square.dashed"
@@ -131,15 +148,21 @@ enum FrameMaterial: String, CaseIterable, Codable, Identifiable {
 }
 
 enum WindowCondition: String, CaseIterable, Codable, Identifiable {
+    case notAssessed = "Not Assessed"
     case good = "Good"
     case fair = "Fair"
     case poor = "Poor"
 
     var id: String { rawValue }
 
+    var isAssessed: Bool { self != .notAssessed }
+
+    static var selectableCases: [WindowCondition] { [.good, .fair, .poor] }
+
     /// Air leakage multiplier — higher = more leakage (worse)
     var leakageFactor: Double {
         switch self {
+        case .notAssessed: return 1.00 // neutral default for calc
         case .good: return 1.00
         case .fair: return 1.15
         case .poor: return 1.35
@@ -148,6 +171,7 @@ enum WindowCondition: String, CaseIterable, Codable, Identifiable {
 
     var description: String {
         switch self {
+        case .notAssessed: return "Tap the info button to assess window condition."
         case .good: return "Seals tight, no drafts, glass is clear."
         case .fair: return "Minor drafts, some fog between panes, or doesn't close perfectly."
         case .poor: return "Drafty, foggy between panes, doesn't latch, or visible gaps."
@@ -164,6 +188,10 @@ struct WindowInfo: Codable, Identifiable {
     var paneType: PaneType = .double
     var frameMaterial: FrameMaterial = .vinyl
     var condition: WindowCondition = .good
+
+    var isFullyAssessed: Bool {
+        paneType.isAssessed && frameMaterial.isAssessed && condition.isAssessed
+    }
 
     /// Effective U-factor combining pane type, frame material, and condition
     var effectiveUFactor: Double {

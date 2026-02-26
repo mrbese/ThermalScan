@@ -1,5 +1,5 @@
 import SwiftUI
-import AVFoundation
+@preconcurrency import AVFoundation
 import UIKit
 
 struct LightingCloseupView: View {
@@ -178,10 +178,12 @@ struct LightingCloseupView: View {
     private func captureAndOCR() {
         camera.capturePhoto { image in
             guard let image else {
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
                 errorMessage = "Failed to capture photo. Please try again."
                 showError = true
                 return
             }
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             capturedImage = image
             isProcessing = true
             Task {
@@ -278,14 +280,16 @@ private class BulbCameraService: NSObject, ObservableObject {
               let input = try? AVCaptureDeviceInput(device: device) else { return }
         if session.canAddInput(input) { session.addInput(input) }
         if session.canAddOutput(output) { session.addOutput(output) }
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.session.startRunning()
+        let session = session
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.startRunning()
         }
     }
 
     func stop() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.session.stopRunning()
+        let session = session
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.stopRunning()
         }
     }
 
@@ -312,9 +316,12 @@ private struct BulbCameraPreview: UIViewRepresentable {
         let view = UIView()
         let layer = AVCaptureVideoPreviewLayer(session: session)
         layer.videoGravity = .resizeAspectFill
-        layer.frame = UIScreen.main.bounds
         view.layer.addSublayer(layer)
         return view
     }
-    func updateUIView(_ uiView: UIView, context: Context) {}
+    func updateUIView(_ uiView: UIView, context: Context) {
+        if let layer = uiView.layer.sublayers?.first as? AVCaptureVideoPreviewLayer {
+            layer.frame = uiView.bounds
+        }
+    }
 }

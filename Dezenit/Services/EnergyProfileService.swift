@@ -250,7 +250,7 @@ enum EnergyProfileService {
     private static func insulationScore(_ quality: InsulationQuality) -> Double {
         switch quality {
         case .good: return 20
-        case .average: return 12
+        case .average, .unknown: return 12
         case .poor: return 5
         }
     }

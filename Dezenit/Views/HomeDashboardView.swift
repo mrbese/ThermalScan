@@ -7,6 +7,7 @@ struct HomeDashboardView: View {
     @Bindable var home: Home
     @State private var showingScan = false
     @State private var showingManualRoom = false
+    @State private var editingPlaceholderRoom: Room?
     @State private var showingEquipmentScan = false
     @State private var showingApplianceScan = false
     @State private var showingApplianceManual = false
@@ -40,19 +41,24 @@ struct HomeDashboardView: View {
                 showingManualRoom = false
             })
         }
+        .sheet(item: $editingPlaceholderRoom) { room in
+            DetailsView(squareFootage: nil, home: home, existingRoom: room, onComplete: {
+                editingPlaceholderRoom = nil
+            })
+        }
         .sheet(isPresented: $showingEquipmentScan) {
             EquipmentDetailsView(home: home, onComplete: {
                 showingEquipmentScan = false
             })
         }
-        .sheet(isPresented: $showingApplianceScan) {
+        .sheet(isPresented: $showingApplianceScan, onDismiss: {
+            if showingApplianceDetailsPrefill != nil {
+                showingApplianceDetails = true
+            }
+        }) {
             ApplianceScanView { result, image in
+                showingApplianceDetailsPrefill = (result.category, image)
                 showingApplianceScan = false
-                // Navigate to details with prefilled data
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    showingApplianceDetailsPrefill = (result.category, image)
-                    showingApplianceDetails = true
-                }
             }
         }
         .sheet(isPresented: $showingApplianceManual) {
@@ -60,7 +66,7 @@ struct HomeDashboardView: View {
                 showingApplianceManual = false
             })
         }
-        .sheet(isPresented: $showingApplianceDetails) {
+        .sheet(isPresented: $showingApplianceDetails, onDismiss: { showingApplianceDetailsPrefill = nil }) {
             if let (category, image) = showingApplianceDetailsPrefill {
                 ApplianceDetailsView(
                     home: home,
@@ -71,39 +77,44 @@ struct HomeDashboardView: View {
                 )
             }
         }
-        .sheet(isPresented: $showingLightingScan) {
+        .sheet(isPresented: $showingLightingScan, onDismiss: {
+            if showingLightingDetailsPrefill != nil {
+                showingLightingDetails = true
+            }
+        }) {
             LightingCloseupView { result, image in
+                showingLightingDetailsPrefill = (result, image)
                 showingLightingScan = false
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    showingLightingDetailsPrefill = (result, image)
-                    showingLightingDetails = true
-                }
             }
         }
-        .sheet(isPresented: $showingLightingDetails) {
-            if let (result, _) = showingLightingDetailsPrefill {
+        .sheet(isPresented: $showingLightingDetails, onDismiss: { showingLightingDetailsPrefill = nil }) {
+            if let (result, image) = showingLightingDetailsPrefill {
                 ApplianceDetailsView(
                     home: home,
                     prefilledCategory: result.bulbType ?? .ledBulb,
                     prefilledWattage: result.wattage,
+                    prefilledImage: image,
                     detectionMethod: "ocr",
                     onComplete: { showingLightingDetails = false }
                 )
             }
         }
-        .sheet(isPresented: $showingBillScan) {
+        .sheet(isPresented: $showingBillScan, onDismiss: {
+            if showingBillDetailsPrefill != nil {
+                showingBillDetails = true
+            } else if pendingBillManual {
+                pendingBillManual = false
+                showingBillManual = true
+            }
+        }) {
             BillUploadView(
                 onResult: { result, image in
+                    showingBillDetailsPrefill = (result, image)
                     showingBillScan = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        showingBillDetailsPrefill = (result, image)
-                        showingBillDetails = true
-                    }
                 },
                 onManual: {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        showingBillManual = true
-                    }
+                    pendingBillManual = true
+                    showingBillScan = false
                 }
             )
         }
@@ -112,7 +123,7 @@ struct HomeDashboardView: View {
                 showingBillManual = false
             })
         }
-        .sheet(isPresented: $showingBillDetails) {
+        .sheet(isPresented: $showingBillDetails, onDismiss: { showingBillDetailsPrefill = nil }) {
             if let (result, image) = showingBillDetailsPrefill {
                 BillDetailsView(
                     home: home,
@@ -132,6 +143,7 @@ struct HomeDashboardView: View {
     @State private var showingApplianceDetailsPrefill: (ApplianceCategory, UIImage)?
     @State private var showingLightingDetails = false
     @State private var showingLightingDetailsPrefill: (BulbOCRResult, UIImage)?
+    @State private var pendingBillManual = false
 
     // MARK: - Audit Banner
 
@@ -173,7 +185,7 @@ struct HomeDashboardView: View {
                                     .frame(width: 36, height: 36)
                                     .rotationEffect(.degrees(-90))
                                 Text("\(Int(audit.progressPercentage))%")
-                                    .font(.system(size: 9, weight: .bold).monospacedDigit())
+                                    .font(.caption2.bold().monospacedDigit())
                             }
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Continue Audit")
@@ -300,32 +312,71 @@ struct HomeDashboardView: View {
                     .padding(.vertical, 8)
             } else {
                 ForEach(home.rooms) { room in
-                    NavigationLink {
-                        ResultsView(room: room)
-                    } label: {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(room.name.isEmpty ? "Unnamed Room" : room.name)
-                                    .font(.subheadline.bold())
-                                Text("\(Int(room.squareFootage)) sq ft")
+                    if room.squareFootage > 0 {
+                        // Completed room — navigate to results
+                        NavigationLink {
+                            ResultsView(room: room)
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(room.name.isEmpty ? "Unnamed Room" : room.name)
+                                        .font(.subheadline.bold())
+                                    Text("\(Int(room.squareFootage)) sq ft")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Text("\(Int(room.calculatedBTU).formatted()) BTU")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(Constants.accentColor)
+                            }
+                            .padding(12)
+                            .background(.background, in: RoundedRectangle(cornerRadius: 10))
+                            .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                home.updatedAt = Date()
+                                modelContext.delete(room)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    } else {
+                        // Placeholder room — tap to fill in details
+                        Button {
+                            editingPlaceholderRoom = room
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(room.name.isEmpty ? "Unnamed Room" : room.name)
+                                        .font(.subheadline.bold())
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "exclamationmark.circle")
+                                            .font(.caption2)
+                                        Text("Tap to scan or add details")
+                                    }
+                                    .font(.caption)
+                                    .foregroundStyle(.orange)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
-                            Spacer()
-                            Text("\(Int(room.calculatedBTU).formatted()) BTU")
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(Constants.accentColor)
+                            .padding(12)
+                            .background(.background, in: RoundedRectangle(cornerRadius: 10))
+                            .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
                         }
-                        .padding(12)
-                        .background(.background, in: RoundedRectangle(cornerRadius: 10))
-                        .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
-                    }
-                    .buttonStyle(.plain)
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            modelContext.delete(room)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                home.updatedAt = Date()
+                                modelContext.delete(room)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
                         }
                     }
                 }
@@ -385,8 +436,9 @@ struct HomeDashboardView: View {
                         .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
                     }
                     .buttonStyle(.plain)
-                    .swipeActions(edge: .trailing) {
+                    .contextMenu {
                         Button(role: .destructive) {
+                            home.updatedAt = Date()
                             modelContext.delete(item)
                         } label: {
                             Label("Delete", systemImage: "trash")
@@ -463,35 +515,41 @@ struct HomeDashboardView: View {
                 .background(Constants.accentColor.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))
 
                 ForEach(home.appliances) { appliance in
-                    HStack(spacing: 12) {
-                        Image(systemName: appliance.categoryEnum.icon)
-                            .font(.title3)
-                            .foregroundStyle(Constants.accentColor)
-                            .frame(width: 28)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(appliance.name)
-                                .font(.subheadline.bold())
-                            HStack(spacing: 4) {
-                                Text("\(Int(appliance.estimatedWattage))W")
-                                Text("·")
-                                Text(formatHours(appliance.hoursPerDay) + " hrs/day")
-                                if appliance.quantity > 1 {
-                                    Text("· x\(appliance.quantity)")
+                    NavigationLink {
+                        ApplianceResultView(appliance: appliance)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: appliance.categoryEnum.icon)
+                                .font(.title3)
+                                .foregroundStyle(Constants.accentColor)
+                                .frame(width: 28)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(appliance.name)
+                                    .font(.subheadline.bold())
+                                HStack(spacing: 4) {
+                                    Text("\(Int(appliance.estimatedWattage))W")
+                                    Text("·")
+                                    Text(formatHours(appliance.hoursPerDay) + " hrs/day")
+                                    if appliance.quantity > 1 {
+                                        Text("· x\(appliance.quantity)")
+                                    }
                                 }
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             }
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            Spacer()
+                            Text("$\(Int(appliance.annualCost()))/yr")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(Constants.accentColor)
                         }
-                        Spacer()
-                        Text("$\(Int(appliance.annualCost()))/yr")
-                            .font(.caption.monospacedDigit())
-                            .foregroundStyle(Constants.accentColor)
+                        .padding(12)
+                        .background(.background, in: RoundedRectangle(cornerRadius: 10))
+                        .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
                     }
-                    .padding(12)
-                    .background(.background, in: RoundedRectangle(cornerRadius: 10))
-                    .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
-                    .swipeActions(edge: .trailing) {
+                    .buttonStyle(.plain)
+                    .contextMenu {
                         Button(role: .destructive) {
+                            home.updatedAt = Date()
                             modelContext.delete(appliance)
                         } label: {
                             Label("Delete", systemImage: "trash")
@@ -580,9 +638,7 @@ struct HomeDashboardView: View {
                                         .font(.subheadline.bold())
                                 }
                                 if let start = bill.billingPeriodStart {
-                                    let formatter = DateFormatter()
-                                    let _ = (formatter.dateFormat = "MMM yyyy")
-                                    Text(formatter.string(from: start))
+                                    Text(Self.billDateFormatter.string(from: start))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -602,8 +658,9 @@ struct HomeDashboardView: View {
                         .shadow(color: .black.opacity(0.04), radius: 4, y: 1)
                     }
                     .buttonStyle(.plain)
-                    .swipeActions(edge: .trailing) {
+                    .contextMenu {
                         Button(role: .destructive) {
+                            home.updatedAt = Date()
                             modelContext.delete(bill)
                         } label: {
                             Label("Delete", systemImage: "trash")
@@ -636,11 +693,17 @@ struct HomeDashboardView: View {
                     }
                     .foregroundStyle(.white)
                     .padding()
-                    .background(Constants.secondaryColor, in: RoundedRectangle(cornerRadius: 14))
+                    .background(Constants.accentColor.opacity(0.85), in: RoundedRectangle(cornerRadius: 14))
                 }
             }
         }
     }
+
+    private static let billDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM yyyy"
+        return f
+    }()
 
     private func formatHours(_ hours: Double) -> String {
         if hours == floor(hours) { return String(Int(hours)) }

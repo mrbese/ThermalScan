@@ -1,5 +1,5 @@
 import SwiftUI
-import AVFoundation
+@preconcurrency import AVFoundation
 import UIKit
 
 struct EquipmentCameraView: View {
@@ -29,15 +29,18 @@ struct EquipmentCameraView: View {
                 Spacer()
 
                 // Guide box overlay
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(.white.opacity(0.6), lineWidth: 2)
-                    .frame(width: UIScreen.main.bounds.width * 0.75,
-                           height: UIScreen.main.bounds.height * 0.35)
-                    .overlay(
-                        Text("Align label here")
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.5))
-                    )
+                GeometryReader { geo in
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(.white.opacity(0.6), lineWidth: 2)
+                        .frame(width: geo.size.width * 0.75,
+                               height: geo.size.height * 0.35)
+                        .overlay(
+                            Text("Align label here")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.5))
+                        )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
 
                 Spacer()
 
@@ -55,8 +58,10 @@ struct EquipmentCameraView: View {
                     Button(action: {
                         camera.capturePhoto { image in
                             if let image {
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                                 onCapture(image)
                             } else {
+                                UINotificationFeedbackGenerator().notificationOccurred(.error)
                                 errorMessage = "Failed to capture photo. Please try again."
                                 showError = true
                             }
@@ -123,14 +128,16 @@ private class CameraService: NSObject, ObservableObject {
         if session.canAddInput(input) { session.addInput(input) }
         if session.canAddOutput(output) { session.addOutput(output) }
 
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.session.startRunning()
+        let session = session
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.startRunning()
         }
     }
 
     func stop() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.session.stopRunning()
+        let session = session
+        DispatchQueue.global(qos: .userInitiated).async {
+            session.stopRunning()
         }
     }
 
@@ -161,10 +168,13 @@ private struct CameraPreviewView: UIViewRepresentable {
         let view = UIView()
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
         previewLayer.videoGravity = .resizeAspectFill
-        previewLayer.frame = UIScreen.main.bounds
         view.layer.addSublayer(previewLayer)
         return view
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {}
+    func updateUIView(_ uiView: UIView, context: Context) {
+        if let previewLayer = uiView.layer.sublayers?.first as? AVCaptureVideoPreviewLayer {
+            previewLayer.frame = uiView.bounds
+        }
+    }
 }

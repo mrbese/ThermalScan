@@ -91,12 +91,12 @@ struct BillDetailsView: View {
                     }
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Bill Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
-                        onComplete?()
                         dismiss()
                     }
                 }
@@ -105,7 +105,18 @@ struct BillDetailsView: View {
                         saveBill()
                     }
                     .bold()
-                    .disabled(Double(totalKWhText) == nil && Double(totalCostText) == nil)
+                    .disabled(
+                        (Double(totalKWhText) == nil && Double(totalCostText) == nil) ||
+                        billingStart >= billingEnd
+                    )
+                }
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
                 }
             }
             .onAppear {
@@ -136,6 +147,7 @@ struct BillDetailsView: View {
         )
         bill.home = home
         modelContext.insert(bill)
+        home.updatedAt = Date()
         onComplete?()
         dismiss()
     }
